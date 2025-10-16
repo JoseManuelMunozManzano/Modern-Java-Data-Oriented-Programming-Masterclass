@@ -352,7 +352,7 @@ De todas formas, indicar que crear un `record` local no es algo muy común.
 
 Cuando este código se compile, el compilador verá esta definición de `record` y creará una clase para ese `record` y, al ejecutar esta aplicación, el `class Loader` lo cargará solo una vez, al igual que haría con cualquier otra clase.
 
-Por tanto, el `class Loader` no va a cargar esa clase cada vez que se llame al método.
+Por tanto, `class Loader` no va a cargar esa clase cada vez que se llame al método.
 
 ### Summary
 
@@ -375,3 +375,143 @@ Por tanto, el `class Loader` no va a cargar esa clase cada vez que se llame al m
     - Útil para comunicación local entre métodos dentro de una clase.
   - Local Records (Helper)
     - Pueden ser útiles en stream pipelines.
+
+## Sealed Types
+
+### Need For Sealed Types
+
+`Sealed` es un modificador que se introdujo en Java 17, y que es usado para controlar la jerarquía de clases.
+
+Tener en cuenta que:
+
+- En esta sección, vamos a comprender "qué" es, y "como" funciona el modificador `sealed`.
+- Pero "por qué / dónde deberíamos usarlo" puede no quedar claro.
+  - Esto quedará claro más tarde, conforme el curso avance, porque todo el curso va a ir sobre esto.
+  - Cuando veamos más ejemplos (tras cubrir `pattern matching`) se entenderá mejor, ya que están muy relacionados.
+
+Los programadores Java ya conocemos la `abstracción`, que conseguimos mediante: 
+
+- Clases Abstractas
+- Interfaces
+
+Todas nuestras aplicaciones, desde siempre, han sido diseñadas de esta forma.
+
+Ahora surge el keyword o modifier `sealed`. ¿Para qué lo necesitamos? ¿Por qué queremos restringir o controlar la jerarquía de clases? En definitiva, ¿qué problema estamos resolviendo?
+
+![alt Abstract Class 01](./images/21-Sealed-Abstract%20Class%2001.png)
+
+Imaginemos esta clase abstracta `Car`. Tenemos dos posibles implementaciones, `Honda` y `Toyota`, así que las creamos extendiendo la clase abstracta `Car`.
+
+El problema es que no solo `Honda` y `Toyota` pueden extender `Car`. Cualquier clase puede extender de `Car`, como `Toy`.
+
+![alt Abstract Class 02](./images/22-Sealed-Abstract%20Class%2002.png)
+
+El problema es que esto puede llevar a sorpresas en tiempo de ejecución, a comportamientos inesperados.
+
+![alt Abstract Class 03](./images/23-Sealed-Abstract%20Class%2003.png)
+
+En este ejemplo, vemos que si se pasa una lista no modificable, al ejecutar el método `add()`, dará un error en tiempo de ejecución.
+
+La primera llamada al método si la detecta el compilador, pero la segunda no.
+
+Lo que queremos es un `comportamiento predecible` de nuestra aplicación, que salten todos los problemas en tiempo de compilación.
+
+Si volvemos al ejemplo de la clase abstracta `Car`, si añadimos el modificador `sealed`, no nos va a permitir que ninguna otra clase que no queramos extienda `Car`.
+
+![alt Fixing Problem 01](./images/24-Sealed-Fixing%2001.png)
+
+Añadiendo el modificador `sealed` y las clases que permitimos que extiendan `Car`, el mismo compilador no va a permitir que `Toy` extienda `Car`.
+
+¿Qué pasa si `Toy` extiende de `Honda` o de `Toyota`? ¡No puede! Al usarse `sealed`, `Honda` y `Toyota` tienen que usar uno de estos modificadores:
+
+- final
+- sealed
+- non-sealed
+
+Estos modificadores impedirán que una clase extienda de algo que no queramos.
+
+En este otro ejemplo, vemos como controlar la jerarquía de clases usando `sealed` también en `Honda`.
+
+- **Es muy importante indicar que todas las clases `sealed` y `permits` tienen que estar en el mismo package.**
+- Esto es por diseño, para restringir la jerarquía.
+  - El contrato `sealed` (sellado) tiene que aplicarse en **tiempo de compilación**.
+- Es un **control estricto**.
+  - Es intencional para asegurar **comportamiento predictivo**.
+  - Las clases `sealed` y las subclases `permits` **evolucionan juntas** conforme cambian los requerimientos.
+
+![alt Fixing Problem 02](./images/25-Sealed-Fixing%2002.png)
+
+Cuando usamos el modificador `non-sealed` obtenemos el comportamiento tradicional, es decir, a partir de indicar `non-sealed` ya no se controla la jerarquía.
+
+Es decir, si indicamos `non-sealed Toyota`, cualquier clase podrá extenderla.
+
+![alt Fixing Problem 03](./images/26-Sealed-Fixing%2003.png)
+
+Restringir la jerarquía nos va a ayudar a implementar nuestras reglas de negocio de una forma mucho más limpia.
+
+Intentaremos capturar todos los problemas por adelantado, en tiempo de compilación, reduciendo los problemas en tiempo de compilación.
+
+Esto lo veremos conforme vayan avanzando las secciones del curso.
+
+### Sealed Type Demo 1
+
+Vamos a jugar con el modificador `sealed` codificando este diseño:
+
+![alt Sealed - How Works 01](./images/27-Sealed-How%20Works%2001.png)
+
+Imaginemos que nuestra aplicación soporta solo dos tipos de `Payment`, `Cash` o `CreditCard`.
+
+Como se muestra en la imagen, el objetivo de esta clase es ver como funcionan las keywords `seales`, `permits`, etc.
+
+En `src/java/com/jmunoz/sec02` creamos los paquetes/clases siguientes:
+
+- `lec01`
+  - `Payment`: Clase abstracta que usa `sealed`.
+  - `Cash`: Clase sealed que es permitida que extienda de `Payment` y permite que `CashRewards` la extienda.
+  - `CreditCard`: Clase final que es permitida que extienda de `Payment`.
+  - `Demo`: Clase que utiliza nuestra jerarquía de clases creadas anteriormente.
+
+Recordar que tanto `Cash` como `CreditCard` tienen que estar en el mismo package que `Payment`.
+
+### Sealed Type Demo 2
+
+Como parte del nuevo requerimiento de negocio, tenemos unos clientes leales que, cuando usen `Cash` obtendrán `CashRewards`, un punto por cada dólar gastado.
+
+En `src/java/com/jmunoz/sec02` creamos las clases siguientes:
+
+- `lec01`
+  - `CashRewards`: Clase final que es permitida que extienda de `Cash`.
+
+### Sealed Interface With Records
+
+En esta clase, en vez de usar una clase abstracta, vamos a usar una interface y, como los `records` puede implementar interfaces, tanto `Paypal` como `CreditCard` serán `records` en vez de clases.
+
+![alt Sealed - How Works 02](./images/28-Sealed-How%20Works%2002.png)
+
+En `src/java/com/jmunoz/sec02` creamos los paquetes/clases siguientes:
+
+- `lec02`
+  - `Payment`: Interface que usa `sealed`.
+  - `CreditCard`: Records que es permitido que implemente de `Payment`. 
+  - `Paypal`: Records que es permitido que implemente de `Payment`. 
+  - `Demo`: Clase que utiliza nuestra jerarquía de clases creadas anteriormente.
+
+### (Clarification) - Records With Side Effects!!
+
+![alt Records with Side Effects](./images/29-Sealed-Records%20with%20Side%20Effects.png)
+
+Hemos dicho que los `records` son portadores de datos, solo mantienen data y deberíamos intentar mantenerlos inmutables.
+
+En la imagen, el método process tiene efectos secundarios, ya que no devuelve nada.
+
+Este método no es una buena práctica y, en la vida real, no lo implementaríamos así, como un `record` que implementa la lógica de procesamiento del pago.
+
+Esto es solo un pequeño ejemplo para demostrar el modificador `sealed`.
+
+### Summary
+
+El modificador `sealed` sirve para restringir la jerarquía de clases.
+
+A lo largo del curso veremos sus casos de uso reales porque, de hecho, los conceptos de la `data oriented programming` dependen mucho de `sealed`.
+
+Las palabras clave de esta sección son `sealed`, `final`, `non-sealed` y `permits`, y recordar que toda la jerarquía de clases debe codificarse en el mismo package.

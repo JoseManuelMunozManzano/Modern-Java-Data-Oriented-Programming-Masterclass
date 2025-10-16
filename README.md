@@ -84,3 +84,22 @@ Ver proyecto `dop-playground`, paquete `sec01`:
 - `Lec08StaticMembers`: Ejemplos de miembros estáticos y métodos de factoría estáticos.
 - `Lec09RecordInterface`: Ejemplo de un `record` implementando una interface.
 - `Lec10RecordReflection`: Ejemplos de uso de reflexión.
+
+## Sealed Types
+
+[README](./dop-playground/README.md#sealed-types)
+
+Ver proyecto `dop-playground`, paquete `sec02`:
+
+- `lec01`
+    - `Payment`: Clase abstracta.
+    - `Cash`: Clase sealed que es permitida que extienda de `Payment` y permite que `CashRewards` la extienda.
+    - `CashRewards`: Clase final que es permitida que extienda de `Cash`.
+    - `CreditCard`: Clase final que es permitida que extienda de `Payment`.
+    - `Demo`: Clase que utiliza nuestra jerarquía de clases creadas anteriormente.
+
+- `lec02`
+    - `Payment`: Interface que usa `sealed`.
+    - `CreditCard`: Records que es permitido que implemente de `Payment`.
+    - `Paypal`: Records que es permitido que implemente de `Payment`.
+    - `Demo`: Clase que utiliza nuestra jerarquía de clases creadas anteriormente.
