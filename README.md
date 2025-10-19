@@ -103,3 +103,19 @@ Ver proyecto `dop-playground`, paquete `sec02`:
     - `CreditCard`: Records que es permitido que implemente de `Payment`.
     - `Paypal`: Records que es permitido que implemente de `Payment`.
     - `Demo`: Clase que utiliza nuestra jerarquía de clases creadas anteriormente.
+
+## Pattern Matching
+
+[README](./dop-playground/README.md#pattern-matching)
+
+Ver proyecto `dop-playground`, paquete `sec03`:
+
+- `Lec01InstanceOf`: Ejemplo de uso de `instanceof` usando `pattern variable`.
+- `Lec02SwitchExpression`: Ejemplo de uso de `switch expression`.
+- `Lec03TypePattern`: Ejemplo de uso de `switch expression` con `type pattern`. Queda un código muy legible si lo comparamos con `Lec01InstanceOf`.
+- `Lec04PatternLabelDominance`: Vemos que `case` se ejecuta cuando más de uno cumple la condición.
+- `Lec05GuardedPattern`: Vemos como funciona una cláusula guarda en un `pattern label`.
+- `Lec06UnnamedVariable`: Vemos como trabajar con `pattern matching` cuando solo nos interesa el tipo, pero no necesitamos el valor.
+- `Lec07RecordPattern`: Vemos un ejemplo de `record pattern`.
+- `Lec08NestedRecordPattern`: Vemos un ejemplo de `record pattern` anidados.
+- `Lec09Exhaustiveness`: Vemos que no es necesario indicar el caso `default` si se cubren todos los posibles valores de entrada.

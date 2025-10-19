@@ -515,3 +515,191 @@ El modificador `sealed` sirve para restringir la jerarquía de clases.
 A lo largo del curso veremos sus casos de uso reales porque, de hecho, los conceptos de la `data oriented programming` dependen mucho de `sealed`.
 
 Las palabras clave de esta sección son `sealed`, `final`, `non-sealed` y `permits`, y recordar que toda la jerarquía de clases debe codificarse en el mismo package.
+
+## Pattern Matching
+
+- `Pattern matching` nos permite comprobar si un objeto es de un tipo específico o tiene una cierta estructura, y luego extrae data de él - ¡todo en un paso!
+  - Test & Unpack
+
+### Is instanceof Bad?
+
+`Pattern matching` puede lograrse en Java usando:
+
+- instanceof
+  - Vamos a hablar de él en esta clase.
+- Expresión switch
+  - Esto es lo que estaremos viendo mayormente en el curso, ya que se obtiene un código más fácil de leer.
+
+Ver la siguiente imagen:
+
+![alt instanceof code smell](./images/30-PatternMatching-instanceof%20Bad.png)
+
+`instanceof` es considerado un `code smell` si la lógica puede manejarse más limpiamente a través de llamadas a métodos polimórficos.
+
+Ver ahora esta imagen:
+
+![alt Polymorphism](./images/31-PatternMatching-polymorfism.png)
+
+Idealmente, así es como debería implementarse el ejemplo anterior, usando polimorfismo.
+
+El supuesto básico es que tenemos acceso al código (somos los dueños de estos tipos) y podemos modificarlo. En este caso, `instanceof` puede ser mala práctica, pero en otros casos se considera buena práctica.
+
+Cuando es buena práctica el uso de `instanceof`:
+
+- Tratamos con tipos que no comparten una abstracción común (como String, List, Map, etc.)
+- No controlamos el código fuente.
+- Escribimos utilidades como `isEmpty`, `deepCopy`, etc.
+- Intentamos conectar bibliotecas externas
+  - Spring Framework
+
+![alt instanceof good](./images/32-PatternMatching-instanceoff%20Good.png)
+
+### Pattern Matching - instanceof
+
+Antes de Java 16 así se usaba `instanceof`:
+
+![alt instanceof before Java16](./images/33-PatternMatching-instanceoff%20Before%20Java16.png)
+
+Primero comprobamos si el tipo dado es String y luego invocamos de forma segura el método String. Si no lo hacemos así el compilador se quejará.
+
+En Java 16 el equipo de Java realizó una mejora menor:
+
+![alt instanceof after Java16](./images/34-PatternMatching-instanceoff%20After%20Java16.png)
+
+Ahora podemos usar esta forma, donde la variable `string` se llama `pattern variable`. Cuando el objeto dado coincide con el tipo String, `pattern variable` se inicializa y ahora podemos acceder al objeto usando ese `pattern variable`.
+
+`pattern matching` tiene más cosas interesantes que iremos viendo en esta sección.
+
+El código con `instanceof` que vimos en la clase anterior puede hacerse más legible usando `pattern variable`.
+
+![alt instanceof vs Pattern Variable](./images/35-PatternMatching-instanceof%20vs%20Pattern%20Variables.png)
+
+Sin embargo, aunque la forma de la derecha es más legible, no tiene por qué ser mejor, ya que hay muchas condiciones `if - else`. Se ve feo.
+
+En la próxima clase hablaremos de `switch expression`, con lo que el código será mucho más legible.
+
+Algo muy importante a considerar es el ámbito de `pattern variable`:
+
+![alt Pattern Variable Scope](./images/36-PatternMatching-Pattern%20Variable%20Scope.png)
+
+Estudiar las imágenes para ver en qué bloque de código podemos acceder a `pattern variable`. Lo normal es usar el código tal y como se ve en la imagen de la izquierda.
+
+En `src/java/com/jmunoz/sec03` creamos las clases siguientes:
+
+- `Lec01InstanceOf`: Ejemplo de uso de `instanceof` usando `pattern variable`.
+
+### Switch Expression
+
+Las `switch expression` no son lo mismo que las `switch statement` tradicionales. Estas últimas tienen los siguientes problemas:
+
+- Necesitamos usar `break` en cada `case` para salir del switch.
+  - En la imagen de abajo, la falta de `break` en `case "US"`, hace que el valor taxRate sea `0.06` en vez de `0.05`.
+- Tenemos que declarar una variable y asignarle un valor dentro de cada `case`.
+  - Repetitivo.
+- Es una sentencia, no una expresión.
+
+![alt Switch Statement](./images/37-PatternMatching-Switch%20Statement.png)
+
+Vamos a implementar los mismos requerimientos usando la moderna `switch expression` para ver como funciona.
+
+En `src/java/com/jmunoz/sec03` creamos las clases siguientes:
+
+- `Lec02SwitchExpression`: Ejemplo de uso de `switch expression`.
+
+### Type Pattern
+
+Veamos de nuevo este código que usa `instanceof` y `pattern variable`:
+
+![alt Pattern Variables](./images/38-PatternMatching-Pattern%20Variables.png)
+
+Con tantos condicionales `if-else` no es muy legible.
+
+Veamos como podemos reescribirlo usando `switch`:
+
+![alt Switch](./images/39-PatternMatching-Switch.png)
+
+En la parte superior de la imagen vemos lo que hacemos cuando usamos `instanceof` como parte de `type pattern matching`. Se usa `string` como `pattern variable`.
+
+En la parte inferior de la imagen vemos lo que hacemos cuando usamos `switch expression`. El `switch` contendrá el objeto y se comprobará en el `case` que el objeto dado es instancia de String. Si es el caso, se usará el `pattern variable` `string` tras la flecha.
+
+En `src/java/com/jmunoz/sec03` creamos las clases siguientes:
+
+- `Lec03TypePattern`: Ejemplo de uso de `switch expression` con `type pattern`. Queda un código muy legible si lo comparamos con `Lec01InstanceOf`.
+
+### Pattern Label Dominance
+
+¿Qué ocurre cuando varios `pattern labels` (los case) satisfacen la condición para un objeto dado en un `switch`? Solo se ejecuta un bloque.
+
+![alt Pattern Label Dominance](./images/40-PatternMatching-Pattern%20Label%20Dominance.png)
+
+En `src/java/com/jmunoz/sec03` creamos las clases siguientes:
+
+- `Lec04PatternLabelDominance`: Vemos que `case` se ejecuta cuando más de uno cumple la condición. 
+
+### Guarded Pattern Label
+
+![alt Guarded Pattern Label](./images/41-PatternMatching-Guarded%20Pattern%20Label.png)
+
+En la imagen vemos el `pattern label` (case Integer i), y, a su lado, podemos tener una expresión booleana (when ...). Si el case y la condición booleana se cumplen, se ejecutará el bloque de código.
+
+El nombre viene de: El `pattern label` es `guarded` por la clausula `when`.
+
+En `src/java/com/jmunoz/sec03` creamos las clases siguientes:
+
+- `Lec05GuardedPattern`: Vemos como funciona una cláusula guarda en un `pattern label`. 
+
+### Unnamed Variable
+
+A veces, nuestros requerimientos serán recibir un objeto y comprobar si es de tipo Double o Integer, etc.
+
+Pero no necesitamos realmente el valor porque con que coincida el tipo es suficiente para hacer algo, pero el valor nos da igual.
+
+Podemos usar el guion bajo para indicar que no queremos el `pattern variable` de esta forma: `case Double _ -> log.info("received double");`.
+
+En `src/java/com/jmunoz/sec03` creamos las clases siguientes:
+
+- `Lec06UnnamedVariable`: Vemos como trabajar con `pattern matching` cuando solo nos interesa el tipo, pero no necesitamos el valor.
+
+### Record Pattern
+
+![alt Record Pattern](./images/42-PatternMatching-Record%20Pattern.png)
+
+Imaginemos que hemos definido un `record` genérico llamado `ApiResponse` que nos valga para obtener las respuestas de diferentes llamadas a microservicios, o un error tipo `BadRequest`, `InternalServerError`, etc.
+
+Como se indica en el comentario, hay mejores formas de modelar ese record y lo veremos más adelante. Se hace así para este ejemplo.
+
+Cuando en la parte inferior de la imagen usamos `switch expression` para `pattern matching`, si comprobamos si el objeto dado es del tipo `record` `ApiResponse`, podemos deconstruir el `record` y comprobar los `record components`.
+
+En el ejemplo concreto indicamos que `success` es un `pattern variable` de tipo `Integer` y que no nos interesa el error (`unnamed varible`) porque estamos obteniendo un tipo de respuesta exitosa.
+
+En `src/java/com/jmunoz/sec03` creamos las clases siguientes:
+
+- `Lec07RecordPattern`: Vemos un ejemplo de `record pattern`.
+
+### Nested Record Pattern
+
+En `src/java/com/jmunoz/sec03` creamos las clases siguientes:
+
+- `Lec08NestedRecordPattern`: Vemos un ejemplo de `record pattern` anidados.
+
+### Switch Exhaustiveness
+
+Cuando usamos `switch` nos obliga a añadir el bloque `default`, porque piensa que no hemos cubierto todos los posibles valores de entrada.
+
+Pero en algunos casos sí que podemos cubrir todos los posibles valores de entrada y, en ese caso, no hace falta que usemos `default`.
+
+En `src/java/com/jmunoz/sec03` creamos las clases siguientes:
+
+- `Lec09Exhaustiveness`: Vemos que no es necesario indicar el caso `default` si se cubren todos los posibles valores de entrada.
+
+### Summary
+
+- `Pattern matching` nos permite comprobar si un objeto es de un tipo específico o tiene cierta estructura, y extraer su data.
+- `Pattern matching` puede conseguirse usando:
+  - `instanceof`
+    - La nueva forma nos permite obtener un `pattern variable`.
+  - `switch expression`
+    - Más legible que usar `instanceof` con muchas condiciones `if-else`.
+    - Mejor que el `switch` clásico, sin sentencia `break`.
+    - Permite usar cláusulas guarda para comprobar condiciones.
+    - Si el tipo es un `record` o un `record component`, se puede deconstruir.
