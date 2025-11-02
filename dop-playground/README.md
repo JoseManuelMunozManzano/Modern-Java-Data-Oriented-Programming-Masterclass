@@ -703,3 +703,275 @@ En `src/java/com/jmunoz/sec03` creamos las clases siguientes:
     - Mejor que el `switch` clásico, sin sentencia `break`.
     - Permite usar cláusulas guarda para comprobar condiciones.
     - Si el tipo es un `record` o un `record component`, se puede deconstruir.
+
+## Principles Of Data Oriented Programming
+
+### Introduction To Data Oriented Programming
+
+- Es un enfoque de programación donde la data y las acciones (comportamiento) que operan sobre esa data están agrupados en objetos.
+  - Muy adecuado donde la data y el comportamiento correspondiente están fuertemente acoplados.
+  - Cuando los objetos necesitan gestionar su propio estado.
+  - En estructuras de datos en memoria como List/Set/Map, etc.
+
+La programación orientada a objetos encaja naturalmente con aplicaciones monolíticas donde todos los módulos de la aplicación, como el módulo `customer`, el módulo `payment`, el módulo `order`, etc. viven juntos. Era fácil modelar las complejas entidades de negocio como objetos que agrupaban tanto data como comportamiento. Los módulos pueden interactuar unos con otros pasándose objetos.
+
+Pero la arquitectura de una aplicación moderna ha cambiado. Se construyen aplicaciones como una colección de microservicios. Estos servicios se comunican por la red intercambiando data plana, típicamente en formato JSON, protobuf, o formatos similares.
+
+En esta nueva arquitectura, no se pasan objetos con comportamiento. Se pasan solo datos sin procesar (raw data). La lógica que sabe como manejar esta data vive en cada microservicio.
+
+Por tanto:
+
+- La programación orientada a la data es un estilo de programación orientado a separar la data (usando estructuras simples, inmutables) del comportamiento que opera sobre esa data.
+
+Java ha comenzado a soportar este tipo de programación gracias a características modernas como `records`, `sealed types` y `pattern matching`.
+
+**OOP vs DOP**
+
+- En OOP, modelamos objetos del mundo real que manejan su propio comportamiento.
+  - Ej: `car.start();` donde car es un objeto que sabe como arrancar.
+- En DOP, tratamos la data como data plana. No tiene comportamiento.
+  - Piensa en tus clases de datos como hechos simples sobre el mundo.
+  - La lógica que procesa estos hechos vive en otro sitio.
+  - Ej: `record Car(String make, String model) {}` donde car es solo data sin comportamiento.
+
+![alt OOP vs DOP 01](./images/43-OOPvsDOP01.png)
+
+En la parte izquierda de la imagen vemos código OOP. Tanto `CreditCard` como `Paypal` implementan el método `process()` y, dependiendo de la instancia de `Payment` que pasemos, se invocará el comportamiento apropiado (polimorfismo).
+
+En la parte derecha de la imagen vemos código DOP. Tenemos `records` que contendrán la información de `CreditCard`, `Paypal`, etc. Usando `pattern matching`, procesaremos `payment`.
+
+En OOP, la lógica está dispersa en varios objetos y cada type conoce como procesar lo suyo.
+
+En DOP, la lógica está centralizada y se comporta basada en el type.
+
+![alt OOP vs DOP 02](./images/44-OOPvsDOP02.png)
+
+**Beneficios de usar DOP**
+
+- Código legible y mantenible.
+- Comportamiento más predecible.
+- Fuerte soporte para compiladores que detectan errores de forma temprana, reduciendo las sorpresas en tiempo de ejecución.
+
+**Notas**
+
+- DOP no sustituye a OOP.
+- Usar DOP cuando:
+  - Tratamos con data inmutable como events, commands, messages, etc.
+  - El modelo de negocio implica un flujo de trabajo complejo, con un conjunto de pasos a realizar en un orden particular.
+    - Como cumplimiento de pedidos de comercio electrónico que incluye los pasos: detección del pago, inventario, planificación, envío, etc.
+    - Como aprobación de un préstamo, etc.
+  - Pasamos data entre componentes/servicios.
+  - La lógica necesita estar centralizada y predecible en vez de distribuida entre objetos.
+
+### Algebraic Data Types
+
+Tipos de datos algebráicos es un nombre elegante para Programación Funcional.
+
+- Tipos de datos compuestos - ¡tipos nuevos formados al combinar otros tipos!
+  - Depende de como los combinemos, podemos clasificarlos en dos categorías:
+    - AND / Product
+      - Tipos de productos AND o Product.
+      - Product significa combinación de valores que vienen de la teoría de conjuntos (Set) matemáticos.
+    - OR / Sum / Choice
+      - Tipos de productos OR o Sum o Choice.
+
+- Tipos AND o Product: son `records`.
+  - En el código de abajo vemos que el tipo Address se representa con una `street` AND un `city` AND un `zipCode`.
+  - El tipo Customer se representa con `name` AND `email` AND `address`.
+
+```java
+record Address(String street, String city, String zipCode) { }
+
+record Customer(String name, String email, Address address) { }
+```
+
+- Tipos OR / Sum / Choice: son `sealed types`.
+  - En el código de abajo, Payment es un tipo con dos opciones posibles, `CreditCard` OR `Paypal`.
+
+```java
+sealed interface Payment permits CreditCard, Paypal { }
+
+record CreditCard(String number, String cvv) implements Payment { }
+
+record Paypal(String email) implements Payment { }
+```
+
+Ejemplos donde podemos usar `seales types`:
+
+![alt Sealed Types Examples](./images/45-SealedTypesExamples%20.png)
+
+Todos estos ejemplos representan `Choice` entre distintas opciones.
+
+Esto es importante porque en nuestro dominio de negocio tendremos muchos tipos OR, y tenemos que reconocerlos apropiadamente para poder modelar correctamente nuestro dominio de negocio.
+
+En este código: `record PassengerMeal(Dring drink, MainCourse mainCourse) { }` vemos que el `record` contiene `drink` AND `mainCourse`.
+
+Tenemos dos `Choice` para `drink` y tres `Choice` para `mainCourse`. En total, podemos crear seis combinaciones. Por esto lo llamamos tipo `Product`.
+
+### Sealed Record - Pattern Matching - Demo 1
+
+En `src/java/com/jmunoz/sec04` creamos los packages/clases siguientes:
+
+- `lec01`
+  - `Payment`: Es un `sealed interface` que contiene internamente dos `records` con los tipos de pago permitidos.
+  - `Demo`: Clase principal.
+
+### Sealed Record - Pattern Matching - Demo 2
+
+Es otro ejemplo más de `seales records` y `pattern matching`.
+
+En `src/java/com/jmunoz/sec04` creamos los packages/clases siguientes:
+
+- `lec02`
+  - `ContactType`: Es un `sealed interface` que contiene internamente dos `records` con los tipos de contacto permitidos.
+  - `User`: Es un `record` con un campo de tipo `ContactType`.
+  - `LoginVerificationService`: Clase que, en función del tipo de contacto, envía un código de login de una u otra forma.
+  - `Demo`: Clase principal.
+
+### Enum vs Sealed
+
+![alt Enum vs Sealed 01](./images/46-EnumVsSealed01.png)
+
+Este `enum` y este `sealed type` son parecidos cuando usamos el `sealed type` con `records`. ¿Por qué necesitamos `seales types` cuando ya tenemos `enum`?
+
+La diferencia básica es esta:
+
+- `Enum` es una clase que ya contiene las posibles instancias, en este caso 2, HONDA y TOYOTA.
+  - Instancias restringidas.
+- `Sealed Type` tiene dos posibles tipos, en este caso 2, Honda y Toyota.
+  - Tipos restringidos, pero podemos crear millones de instancias (instancias NO restringidas).
+
+![alt Enum vs Sealed 02](./images/47-EnumVsSealed02.png)
+
+Pero, ¿por qué necesitamos `sealed types`? ¿No podemos crear algo como muestra la imagen? CarMake es un `enum` y creamos un `record` Car.
+
+Se puede. De hecho, hemos creado millones de aplicaciones así.
+
+![alt Enum vs Sealed 03](./images/48-EnumVsSealed03.png)
+
+Pero en algunos casos, podemos tener propiedades adicionales.
+
+En este ContactType, en caso de EMail, necesitamos la dirección de email. Pero en caso de Phone, necesitamos el código de país, el número de teléfono y la hora preferida.
+
+Es decir, tenemos propiedades adicionales dependiendo del tipo de contacto, y en este caso no usaremos `enum`.
+
+### Data Oriented Programming Principles
+
+Al igual que en la programación orientada a objetos (POO) tenemos como principios fundamentales:
+
+- Abstracción
+- Encapsulación
+- Herencia
+- Polimorfismo
+
+Los principios fundamentales de la programación orientada a la data (DOP) son:
+
+- Datos del modelo como datos
+- Hacer la data inmutable
+- Validar en el límite
+- Hacer que los estados ilegales sean irrepresentables
+
+**Model Data As Data**
+
+- Tratar la data como hechos sobre el mundo, no como objetos que saben qué hacer (no comportamiento).
+- Definir los conceptos de negocio usando data bien estructurada.
+  - record
+  - sealed (para selección de tipos)
+
+Ejemplos: 
+
+- Product es un `record` con información básica sobre el producto. No posee métodos como `updatePrice()`...
+- Customer tiene información sobre el nombre, email, pero no tiene métodos como `sendEMail()`...
+
+![alt Model Data As Data](./images/49-ModelDataAsData.png)
+
+**Make Data Immutable**
+
+- Una vez creada, la data NO debería cambiar. Esto lleva a comportamiento predecible y menos bugs.
+- Un `record` con un campo mutable no modela data. Modela un estado variable en el tiempo.
+  - Debemos asegurarnos que los componentes de los `record` son inmutables.
+
+Ejemplos:
+
+![alt Make Data Immutable](./images/50-MakeDataImmutable.png)
+
+**Validate At The Boundary**
+
+- Realizar la validación cuando la data entra en nuestro sistema (por ejemplo, peticiones HTTP, lecturas de BD), para que la lógica interna trate solo con data válida y fiable.
+  - Usar `compact constructors` en `record` Java es una de las mejores formas de implementar este principio.
+  - También se puede usar Jakarta Validation si usamos Spring.
+
+Ejemplo: 
+
+- Usando un `compact constructor` para validar la data nos aseguramos que no puede crearse un email inválido.
+- La imagen del aeropuerto es un símil, donde antes de hacer el check-in, el personal de seguridad se asegura que tenemos todo en orden. Una vez nos dejan pasar, ya se confía que estamos con todo en regla.
+
+![alt Validate At The Boundary 01](./images/51-ValidateAtTheBoundary01.png)
+
+- También podemos recibir data desde el exterior, por ejemplo desde una petición, o leer de una BD, y no podemos confiar en esta data por defecto. De nuevo, tenemos que validar en los límites para asegurarnos que solo data válida y bien formada entra a nuestro sistema.
+  - De esta forma, nuestro dominio principal queda limpio y puro, libre de estados inválidos o inconsistentes.
+
+![alt Validate At The Boundary 02](./images/52-ValidateAtTheBoundary02.png)
+
+- Por último, vemos un ejemplo en que usamos Jakarta Validation. Suponemos que usamos Spring.
+
+![alt Validate At The Boundary 03](./images/55-ValidateAtTheBoundary03.png)
+
+**Make Illegal States Unrepresentable**
+
+- En vez de escribir mucho código para asegurarnos de que la data es válida, diseña tus estructuras de datos de tal forma que sea imposible crear estado malo o inconsistente.
+  - Si el código no puede representar un estado inválido, evitamos validar en todos lados, y evitamos bugs debido a data errónea.
+  - Nuestro código se vuelve más robusto y se explica por sí mismo.
+- Beneficios:
+  - `Seales types` garantizan que todos los posibles estados están explicitamente definidos, evitando formas de data inesperadas.
+  - Comprobaciones en tiempo de compilación => `Pattern matching` con `switch` asegura que se manejan todos los estados, detectando errores en tiempo de compilación.
+
+Ejemplo:
+
+- TaskStatus solo puede tener los estados Todo, InProgress o Done. Cualquier otro tipo de estado dará un error en tiempo de compilación.
+
+![alt Make Illegal States Unrepresentable](./images/53-MakeIllegalStatesUnrepresentable.png)
+
+### Importance Of Types
+
+Un código más seguro comienza con tipos más pequeños.
+
+- Muchos desarrolladores dudan en crear tipos pequeños, enfocados.
+  - Temen la llamada `class explosion`.
+  - Usar primitivos/cadenas suele verse como más fácil para hacer el trabajo.
+  - Definir nuevos tipos puede parecer excesivo.
+- Pero en realidad, evitar los tipos adecuados lleva a:
+  - Firmas de métodos confusos y ambiguos.
+  - Parámetros que son fáciles de usar mal o intercambiarlos.
+  - Lógica de validación frágil o repetida en todos lados.
+  - Las reglas de dominio dispersas por todo el código fuente.
+
+![alt Importance Of Types](./images/56-ImportanceOfTypes.png)
+
+La programación orientada a la data prospera gracias a modelos de datos claros, estructurados e inmutables.
+
+- Para comprender mejor estos conceptos, diseñaremos un sencillo servicio de email `EMailService` que acepta un `EMail` y un `Message` para enviar.
+  - EMail debe tener un formato válido.
+  - Message debe tener un mínimo de 10 caracteres y un máximo de 5000 caracteres.
+
+En `src/java/com/jmunoz/sec04` creamos los packages/clases siguientes:
+
+- `lec03`
+  - `EMailService`: 
+    - Desarrollo usando primitivos/cadenas en vez de tipos pequeños, pensando que así es más fácil el desarrollo.
+    - Desarrollo usando records `EMailAddress` y `Message`.
+  - `EMailAddress`: Record que modela un email válido.
+  - `Message`: Record que modela un mensaje válido.
+  - `Demo`: Clase principal.
+
+### [Clarification] - Can Records Have Methods?
+
+¡Separar la data del comportamiento NO significa que los `records` no puedan tener métodos!
+
+![alt Records With Methods](./images/54-RecordsWithMethods.png)
+
+Métodos del tipo que aparecen en la imagen de la izquierda son perfectamente admisibles, ya que el método no tiene efectos secundarios.
+
+Métodos del tipo que aparecen en la imagen de la derecha es mejor no hacerlos, ya que tienen efectos secundarios, porque que son operaciones IO.
+
+Si nuestros `records` empiezan a mandar emails, hablar con BD o gestionar flujos de datos, entonces ya no es solo data. El testing también va a ser más complicado porque, ¿cómo probamos este método sin hacer mock o configurar una infraestructura de email? Rompe la idea de que la data debe ser pura y predecible.

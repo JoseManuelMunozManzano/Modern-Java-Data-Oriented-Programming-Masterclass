@@ -119,3 +119,25 @@ Ver proyecto `dop-playground`, paquete `sec03`:
 - `Lec07RecordPattern`: Vemos un ejemplo de `record pattern`.
 - `Lec08NestedRecordPattern`: Vemos un ejemplo de `record pattern` anidados.
 - `Lec09Exhaustiveness`: Vemos que no es necesario indicar el caso `default` si se cubren todos los posibles valores de entrada.
+
+## Principles Of Data Oriented Programming
+
+[README](./dop-playground/README.md#principles-of-data-oriented-programming)
+
+Ver proyecto `dop-playground`, paquete `sec04`:
+
+- `lec01`
+    - `Payment`: Es un `sealed interface` que contiene internamente dos `records` con los tipos de pago permitidos.
+    - `Demo`: Clase principal.
+- `lec02`
+    - `ContactType`: Es un `sealed interface` que contiene internamente dos `records` con los tipos de contacto permitidos.
+    - `User`: Es un `record` con un campo de tipo `ContactType`.
+    - `LoginVerificationService`: Clase que, en función del tipo de contacto, envía un código de login de una u otra forma.
+    - `Demo`: Clase principal.
+- `lec03`
+    - `EMailService`:
+        - Desarrollo usando primitivos/cadenas en vez de tipos pequeños, pensando que así es más fácil el desarrollo.
+        - Desarrollo usando records `EMailAddress` y `Message`.
+    - `EMailAddress`: Record que modela un email válido.
+    - `Message`: Record que modela un mensaje válido.
+    - `Demo`: Clase principal.
