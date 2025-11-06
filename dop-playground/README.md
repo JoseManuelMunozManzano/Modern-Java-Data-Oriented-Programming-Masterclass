@@ -972,6 +972,210 @@ En `src/java/com/jmunoz/sec04` creamos los packages/clases siguientes:
 
 Métodos del tipo que aparecen en la imagen de la izquierda son perfectamente admisibles, ya que el método no tiene efectos secundarios.
 
-Métodos del tipo que aparecen en la imagen de la derecha es mejor no hacerlos, ya que tienen efectos secundarios, porque que son operaciones IO.
+Métodos del tipo que aparecen en la imagen de la derecha es mejor no hacerlos, ya que tienen efectos secundarios, porque son operaciones IO.
 
 Si nuestros `records` empiezan a mandar emails, hablar con BD o gestionar flujos de datos, entonces ya no es solo data. El testing también va a ser más complicado porque, ¿cómo probamos este método sin hacer mock o configurar una infraestructura de email? Rompe la idea de que la data debe ser pura y predecible.
+
+## Domain Modeling
+
+### Introduction
+
+`Domain Modeling` es un proceso de diseño de estructuras de datos que representan los conceptos clave en un dominio de negocio específico (e-commerce, banca, atención médica...)
+
+- Identificamos entidades del mundo real (Customer, Order, Product...)
+- Definimos relaciones entre ellas.
+- Definimos estados válidos y transiciones.
+
+Las ventajas que trae al software un buen modelaje son:
+
+- Más fácil de leer.
+- Más fácil de probar.
+- Más fácil de extender.
+- Más alineado con el lenguaje del negocio.
+
+**Recognizing Patterns In Domain**
+
+Todo comienza reconociendo patrones del dominio. Cuando vamos analizando y modelando un dominio, empezamos a ver patrones recurrentes.
+
+Estos patrones nos ayudan a escribir código que es expresivo y confiable.
+
+- Simple Values (Tienen significados específicos en el dominio)
+  - No son solo Strings o números, tienen significado en el dominio y deben modelarse explícitamente.
+  - EMail Address / Phone / Product Code / Price
+- ADT - AND Types (combinación de values)
+  - Address, Order, etc, donde Address está compuesto de street AND city AND zipCode.
+- ADT - OR Types (elecciones)
+  - Shipping puede ser Express OR Standard.
+- Processes / Workflows
+  - Representa como cambian las cosas en el tiempo, desde un estado válido a otro. 
+  - Acciones que toman entradas, realizan transformaciones y producen salidas.
+  - Cada transición puede tener precondiciones o reglas para acceder a la siguiente transición.
+  - Pending -> Paid -> Shipped -> Delivered
+  - Incluso esto puede modelarse usando el tipo OR (elecciones). Por ejemplo, un estado Order puede ser uno de los estados de arriba en un punto dado. Evitamos transiciones a estados inválidos y hace la lógica de negocio clara y auditable.
+
+### Modeling State Change
+
+En esta clase vamos a ver como modelar este cambio de estado en el flujo de nuestra aplicación.
+
+- Tenemos estos 4 estados
+  - Pending -> Paid -> Shipped -> Delivered
+- En el futuro, podemos añadir estos estados adicionales
+  - Refunded
+  - Cancelled
+
+**Avoid Boolean**
+
+Muchos desarrolladores intentarán crear cláusulas guarda usando booleanos para cada posible estado.
+
+![alt Avoid Boolean 1](./images/57-AvoidBoolean1.png)
+
+Estos booleanos pueden causar muchísima confusión, porque, ¿es esto posible?
+
+- Paid = false, Shipped = true
+- Paid = true, Shipped = false, Delivered = true
+
+![alt Avoid Boolean 2](./images/58-AvoidBoolean2.png)
+
+Si tenemos que añadir más estados, como Refunded o Cancelled, tendremos más booleanos como isCancelled o isRefunded. Esto creará todavía más confusión.
+
+Puede que también existan campos String como reasonForCancel, aplicable solo cuando isCancelled es true, o reasonForRefund aplicable solo cuando isRefunded es true. Si valen false, el valor de estos String será null.
+
+Esto no es un buen diseño. Tenemos que evitar usar booleanos para gestionar estados.
+
+**Enum Is OK!**
+
+Comparado con booleanos, usar Enum para los estados es correcto.
+
+![alt Enum Is OK](./images/59-EnumIsOk.png)
+
+Sin embargo, tenemos el mismo problema con los campos reasonForCancel y reasonForRefund. Dependiendo del estado accederemos a un campo o a otro.
+
+Esto ya lo vimos cuando discutimos la diferencia entre Enum y tipos Field.
+
+**Explicit Type Is Perfect!**
+
+Usar tipos explícitos es un enfoque mucho mejor, más limpio.
+
+![alt Explicit Type Is Perfect](./images/60-ExplicitTypeIsPerfect.png)
+
+Tenemos un `record` para capturar los detalles básicos de una orden.
+
+Tenemos un `sealed` OrderStatus con todos los posibles estados, como Pending, Paid, Shipped, etc. Cada estado tiene sus campos específicos, como Cancelled y Refunded, que tienen el campo reason.
+
+Podemos añadir más estados fácilmente y no se permiten por diseño estados ilegales. Además, es un ciclo de vida de estados autodocumentado, muy fácil de entender solo viendo el código.
+
+**Avoid null**
+
+Tomemos un requerimiento completamente diferente. El estado User cambia de `unverified` a `verified`, por ejemplo cuando un usuario pulsa en el enlace que le llega a su dirección de correo a registrarse en una web.
+
+![alt Avoid Null](./images/61-AvoidNull.png)
+
+En este ejemplo, se crea la instancia de un nuevo usuario indicando como fecha de verificado null. Es obvio que lo que se quiere indicar es que el usuario no está verificado.
+
+No hay que confiar en la ausencia de data (null) para expresar estados específicos, como "todavía no", "pendiente".
+
+![alt Sealed Types Instead Of Null](./images/62-SealedInsteadOfNull.png)
+
+Tenemos que usar tipos `sealed` apropiados, en este caso `Unverified` y `Verified`. Notar como el estado `Unverified` no usa el campo fecha.
+
+De esta forma, podemos modelar la transición de estados de una manera más límpia.
+
+### Loan Application Workflow
+
+Vamos a modelar un flujo de trabajo para una aplicación de préstamos. El objetivo es:
+
+- Diseñar e implementar un sistema de procesamiento de préstamos usando características de Java modernas. Este sistema modela el ciclo de vida de diferentes aplicaciones de préstamos, evalua la elegibilidad del solicitante y determina el resultado (si el préstamo se aprueba o deniega) con una tasa de interés potencial (si se aprueba).
+
+Por ahora no vamos a usar SpringBoot. Lo usaremos más adelante.
+
+Nuestro dominio consta de:
+
+- Applicant (name, credit score, income)
+  - renta anual (income) en moneda local
+  - credit score es una puntuación de confianza financiera
+- Loan Terms (amount, duration)
+  - importe que el applicant pide en moneda local, duración en años
+- 3 types of Loan
+  - Personal Loan
+  - Property Loan
+  - Auto Loan
+
+- Property loan depende de Property type
+  - Residential (address, rooms count)
+  - Commercial (address, business type)
+    - business type puede ser Retail, Office
+- Auto loan depende de Vehicle
+  - Car (make, year)
+  - Motorcycle (make, engineCC)
+
+- La aplicación de préstamos pasa por estos estados:
+  - Submitted
+  - Reviewed
+  - Approved
+  - Denied
+- Submitted -> Reviewed
+ - Se revisará el credit score del applicant y su detalle de renta anual. Si el applicant no cumple los requisitos, se le denegará el préstamo.
+ - ![alt Loan Elegibility Check](./images/63-LoanElegibilityCheck.png)
+- Reviewed -> Approved
+  - Al aprobarse el préstamo, se decidirá la tasa de interés del préstamo basado en las condiciones siguientes:
+  - ![alt Loan Interest Rate](./images/64-LoanInterestRate.png)
+
+### Loan Models
+
+Vamos a crear los distintos modelos de este proyecto.
+
+En `src/java/com/jmunoz/sec05` creamos los packages/clases siguientes:
+
+- `domain`
+  - `Applicant`: Record
+  - `LoanTerms`: Record
+  - `LoanApplication`: Record que contiene Applicant y LoanTerms
+  - `Address`: Record
+  - `Property`: Es una interface Sealed con dos types (records), Residential y Commercial
+  - `BusinessType`: Es un enum y no un sealed type porque no tiene ninguna propiedad
+  - `Vehicle`: Es una interface Sealed con dos types, Car y Motorcycle
+  - `Loan`: Es una interface Sealed con tres types, PersonalLoan, PropertyLoan y AutoLoan
+
+### Modeling Loan Status & Processor
+
+En `src/java/com/jmunoz/sec05` creamos los packages/clases siguientes:
+
+- `domain`
+  - `LoanStatus`: Es una interface Sealed con los types, Submitted, Reviewed, Approved y Denied
+  - `LoanProcessor`: Es una interface que modela el comportamiento de LoanStatus (no es Sealed)
+
+### Loan State Transition - Implementation
+
+En `src/java/com/jmunoz/sec05` creamos los packages/clases siguientes:
+
+- `impl`
+  - `LoanProcessorImpl`: Implementación de la interface LoanProcessor.
+
+### Loan Workflow - Demo
+
+En `src/java/com/jmunoz/sec05` creamos la clase siguiente:
+
+- `Demo`: Clase main para hacer las pruebas.
+
+Ejecutar `Demo` para probar.
+
+### [Clarification] - Why Does Loan Status Contain Loan?
+
+![alt Loan Status Contains Loan 1](./images/65-LoanStatusContainsLoan1.png)
+
+La imagen de arriba muestra como diseñaríamos normalmente. Loan contiene amount y LoanStatus.
+
+![alt Loan Status Contains Loan 2](./images/66-LoanStatusContainsLoan2.png)
+
+Pero en nuestro diseño, que podemos ver en la imagen de arriba, tenemos los distintos Loan Status, que contienen Loan.
+
+- ¿Es esto correcto?
+  - Si. Nuestro objetivo es modelar la transición de estados como entidades de primera clase.
+- Estos es orientado a la data y conducido por el dominio (domain driven)
+  - Sigue la transición histórica.
+  - Cada estado tiene su propio conjunto de propiedades.
+  - El comportamiento depende de Loan Status primero y luego de Loan.
+- Útil cuando
+  - Tratamos con flujos de trabajo / procesos de la aplicación que contienen muchos estados.
+  - Necesitamos datos ricos por estado en el flujo de trabajo.
+  - Nos importa la inmutabilidad y las transiciones de estado explícitas.

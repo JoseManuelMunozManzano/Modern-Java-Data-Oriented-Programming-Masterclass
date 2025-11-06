@@ -141,3 +141,24 @@ Ver proyecto `dop-playground`, paquete `sec04`:
     - `EMailAddress`: Record que modela un email válido.
     - `Message`: Record que modela un mensaje válido.
     - `Demo`: Clase principal.
+
+## Domain Modeling
+
+[README](./dop-playground/README.md#domain-modeling)
+
+Ver proyecto `dop-playground`, paquete `sec05`:
+
+- `domain`
+    - `Applicant`: Record
+    - `LoanTerms`: Record
+    - `LoanApplication`: Record que contiene Applicant y LoanTerms
+    - `Address`: Record
+    - `Property`: Es una interface Sealed con dos types (records), Residential y Commercial
+    - `BusinessType`: Es un enum y no un sealed type porque no tiene ninguna propiedad
+    - `Vehicle`: Es una interface Sealed con dos types, Car y Motorcycle
+    - `Loan`: Es una interface Sealed con tres types, PersonalLoan, PropertyLoan y AutoLoan
+    - `LoanStatus`: Es una interface Sealed con los types, Submitted, Reviewed, Approved y Denied
+    - `LoanProcessor`: Es una interface que modela el comportamiento de LoanStatus (no es Sealed)
+- `impl`
+    - `LoanProcessorImpl`: Implementación de la interface LoanProcessor.
+- `Demo`: Clase main para hacer las pruebas.
