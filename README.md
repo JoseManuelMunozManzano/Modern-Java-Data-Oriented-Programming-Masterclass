@@ -179,3 +179,27 @@ Ver proyecto `dop-playground`, paquete `sec06`:
         - Internamente los `record` que contiene son `Left<L, R>` y `Right<L, R>`.
         - Tiene también métodos estáticos helper.
     - `Demo`: Clase main para hacer pruebas.
+
+## Error Handling
+
+[README](./dop-playground/README.md#error-handling)
+
+Ver proyecto `dop-playground`, paquete `sec07`:
+
+- `lec01`
+    - `FileReadResponse`: Es un `sealed interface` que usaremos para modelar tres posibles resultados.
+        - Creamos los `record` siguientes: `Data`, `FileNotFound` y `AccessDenied`.
+    - `FileReader`: Clase utility que intenta leer un fichero y devuelve `FileReadResponse` (lee data o excepción).
+    - `Demo`: Clase main para hacer pruebas.
+- En `dop-playground`
+    - `myfile1.txt`: Es un fichero de texto con el que jugar para hacer pruebas.
+    - `myfile2.txt`: Es un fichero de texto con el que jugar para hacer pruebas. Simularemos el error acceso denegado.
+        - Copiar `myfile1.txt`
+        - Ejecutamos `chmod 000 myfile2.txt`
+- `lec02`
+    - `Result`: Es un `sealed interface`.
+        - Internamente, tiene los `record` siguientes: `Success` y `Failure`.
+        - Creamos métodos helper estáticos.
+    - `FileReader`: Usamos el tipo genérico `Result`.
+    - `Demo`: Clase main para hacer pruebas.
+    - `ExternalServiceClient`: Simula la llamada a un servicio externo que devuelve una respuesta que modelamos usando `Result`.

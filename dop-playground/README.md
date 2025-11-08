@@ -1244,3 +1244,102 @@ Cuando tenemos 2 opciones, podemos usar el tipo `Either`. ¿Qué pasa si tenemos
 ![alt Sealed Wrapper](./images/69-SealedWrapper.png)
 
 En estos casos, podemos crear un wrapper `sealed type` como el que se ve en la imagen de arriba. Tendremos un `record` por cada opción.
+
+## Error Handling
+
+Esta es una continuación de la sección anterior (Modeling Uncertainty With Types).
+
+Hasta ahora hemos visto:
+
+- `Option<T>` donde la data puede o no estar disponible.
+- `Either<L, R>` para lidiar con dos posibles resultados.
+
+¿Qué hacemos cuando las cosas van mal? ¿Qué ocurre si quiero leer un fichero y este no existe o intento enviar una petición y da un error de red?
+
+¿Cómo podemos modelar errores de una forma estructurada y predecible?
+
+### Problems With Checked Exceptions
+
+Tradicionalmente, en Java hemos confiado en excepciones, bloques `try catch` para la gestión de errores. Los problemas son:
+
+- Las excepciones no son ciudadanos de primera clase.
+  - No podemos hacer return / compose de ellas.
+- Hacen el código difícil de leer.
+  - No siempre está claro que parte del código hace el `throw` de qué.
+
+![alt Try Catch Block](./images/70-TryCatchBlock.png)
+
+En la imagen estamos gestionando 3 `checked exceptions` diferentes para una tarea relativamente simple (solo 3 líneas de código).
+
+Veamos como podemos modelar estos errores en un estilo de programación orientado a la data.
+
+### Error Handling With Sealed Types
+
+Vamos a crear una sencilla utilidad de lectura de ficheros.
+
+- Resultados:
+  - El fichero existe y podemos obtener la data.
+  - El fichero no se encuentra.
+  - El fichero existe, pero se deniega el acceso porque el usuario no tiene permisos de lectura.
+
+En `src/java/com/jmunoz/sec07` creamos los packages/clases siguientes:
+
+- `lec01`
+  - `FileReadResponse`: Es un `sealed interface` que usaremos para modelar tres posibles resultados.
+    - Creamos los `record` siguientes: `Data`, `FileNotFound` y `AccessDenied`.
+  - `FileReader`: Clase utility que intenta leer un fichero y devuelve `FileReadResponse` (lee data o excepción).
+  - `Demo`: Clase main para hacer pruebas. 
+- En `dop-playground`
+  - `myfile1.txt`: Es un fichero de texto con el que jugar para hacer pruebas.
+  - `myfile2.txt`: Es un fichero de texto con el que jugar para hacer pruebas. Simularemos el error acceso denegado.
+    - Copiar `myfile1.txt`
+    - Ejecutamos `chmod 000 myfile2.txt`
+
+### Generic Result Type - Part 1
+
+Ya hemos visto:
+
+- `Option<T>`
+- `Either<L, R>`
+
+Y vamos a añadir la utilidad genérica siguiente:
+
+- `Result<T>` que modela un resultado bien de éxito o de error.
+
+En `src/java/com/jmunoz/sec07` creamos los packages/clases siguientes:
+
+- `lec02`
+  - `Result`: Es un `sealed interface`.
+    - Internamente, tiene los `record` siguientes: `Success` y `Failure`.
+    - Creamos métodos helper estáticos.
+  - `FileReader`: Usamos el tipo genérico `Result`.
+  - `Demo`: Clase main para hacer pruebas.
+
+### Generic Result Type - Part 2
+
+Vamos a usar el tipo genérico `Result<T>` para modelar una respuesta de un cliente HTTP.
+
+En `src/java/com/jmunoz/sec07` creamos los packages/clases siguientes:
+
+- `lec02`
+  - `ExternalServiceClient`: Simula la llamada a un servicio externo que devuelve una respuesta que modelamos usando `Result`.
+  - `Demo`: Clase main para hacer pruebas.
+
+### [Clarification] - Is Throwing Exception Bad?
+
+Lanzar excepciones:
+
+- Lleva a verbosidad y complejidad.
+- Hace el código más difícil de leer.
+- Las excepciones rompen el flujo normal de control, y la aplicación puede quedar con un estado inconsistente.
+- Lanzar excepciones tiene un coste en el rendimiento (stack trace).
+
+Tenemos dos tipos de excepciones:
+
+- Checked Exceptions
+  - Cualquier error relacionado con el negocio / dominio puede modelarse usando `sealed types`, haciendo el código más legible y permitiendo que el compilador garantice una verificación exhaustiva.
+  - Este enfoque mejora el diseño al mantener errores como data.
+- Runtime Exceptions
+  - Es correcto lanzar RuntimeException cuando necesitamos abortar el flujo de trabajo porque no vemos forma de continuarlo.
+
+No es que sea malo lanzar excepciones, pero deberíamos considerar primero los `sealed types`.
