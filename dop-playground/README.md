@@ -1343,3 +1343,71 @@ Tenemos dos tipos de excepciones:
   - Es correcto lanzar RuntimeException cuando necesitamos abortar el flujo de trabajo porque no vemos forma de continuarlo.
 
 No es que sea malo lanzar excepciones, pero deberíamos considerar primero los `sealed types`.
+
+## Polymorphic Deserialization
+
+### Introduction
+
+Hasta ahora hemos estado hablando de `sealed types` y como pueden usarse en nuestro desarrollo diario.
+
+Pensemos ahora en una arquitectura de microservicios.
+
+![alt Microservices](./images/71-PolymorphicDeserialization.png)
+
+Cuando un servicio llama a un microservicio para obtener Contact type de usuario (EMail o Phone), mandará una petición y el microservicio responde con el JSON que se ve en la imagen.
+
+Pero, ¿cómo podemos decodificar este JSON en un type Contact? Si supiéramos que siempre vamos a recibir un objeto EMail, entonces lo decodificamos directamente, pero no es el caso.
+
+Gracias a la librería Jackson, ya tenemos este problema resuelto. Se llama deserialización polimórfica.
+
+- Es capacidad de la librería de deserialización (como Jackson) determinar automáticamente e instanciar la subclase correcta cuando convertimos JSON en un objeto Java.
+- Esto hace posible usar eficazmente jerarquías `sealed` incluso en arquitectura de microservicios, sin perder la seguridad de tipos ni la flexibilidad.
+
+![alt Jackson Annotations](./images/72-JacksonAnnotations.png)
+
+Para que Jackson funcione con las subclases, tenemos que proporcionales algunas pistas, usando el par de anotaciones que vemos en la imagen.
+
+### Auto Deduction
+
+En `src/java/com/jmunoz/sec08` creamos los packages/clases siguientes:
+
+- `lec01`
+  - `ContactType`: Es un `sealed interface` que contiene los siguientes `records`: `EMail` y `Phone`.
+  - `Demo`: Clase main para hacer pruebas.
+
+### Property Based Deduction
+
+En la clase anterior estuvimos jugando con la deserialización polimórfica usando `DEDUCTION`. Funciona muy bien cuando el JSON tiene campos diferentes.
+
+En algunos casos, podríamos tener un JSON como este:
+
+![alt Same JSON](./images/73-SameJson.png)
+
+Ambos JSON tienen exactamente los mismos campos. Vamos a ver como deserializar correctamente.
+
+En `src/java/com/jmunoz/sec08` creamos los packages/clases siguientes:
+
+- `lec02`
+  - `ContactType`: Es un `sealed interface` que contiene los siguientes `records`: `EMail` y `Phone`.
+  - `Demo`: Clase main para hacer pruebas.
+
+### Mixin
+
+Nuestra deserialización polimórfica funciona bien, pero hay un pequeño problema.
+
+![alt Annotations Problem](./images/74-AnnotationsProblem.png)
+
+Este `sealed type` es una clase del dominio. Estamos intentando modelar nuestro dominio, pero hemos tenido que añadir las anotaciones para resolver un problema técnico. Estas anotaciones afean el código.
+
+El problema es que estamos mezclando el problema del dominio con el problema de infraestructura.
+
+Además, ¿qué haríamos si el `sealed type` fuera parte de una librería de terceros y no hubieran añadido estas anotaciones?
+
+Necesitamos otra solución, y aquí es donde entra Jackson `mixin`.
+
+En `src/java/com/jmunoz/sec08` creamos los packages/clases siguientes:
+
+- `lec03`
+    - `ContactType`: Es un `sealed interface` que contiene los siguientes `records`: `EMail` y `Phone`.
+    - `ContactTypeMixIn`: Nuestra clase `mixin` que contiene la configuración de ContactType para deserialización.
+    - `Demo`: Clase main para hacer pruebas.

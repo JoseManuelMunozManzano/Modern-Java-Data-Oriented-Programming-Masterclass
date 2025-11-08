@@ -203,3 +203,20 @@ Ver proyecto `dop-playground`, paquete `sec07`:
     - `FileReader`: Usamos el tipo genérico `Result`.
     - `Demo`: Clase main para hacer pruebas.
     - `ExternalServiceClient`: Simula la llamada a un servicio externo que devuelve una respuesta que modelamos usando `Result`.
+
+## Polymorphic Deserialization
+
+[README](./dop-playground/README.md#polymorphic-deserialization)
+
+Ver proyecto `dop-playground`, paquete `sec08`:
+
+- `lec01`
+    - `ContactType`: Es un `sealed interface` que contiene los siguientes `records`: `EMail` y `Phone`.
+    - `Demo`: Clase main para hacer pruebas.
+- `lec02`
+    - `ContactType`: Es un `sealed interface` que contiene los siguientes `records`: `EMail` y `Phone`.
+    - `Demo`: Clase main para hacer pruebas.
+- `lec03`
+    - `ContactType`: Es un `sealed interface` que contiene los siguientes `records`: `EMail` y `Phone`.
+    - `ContactTypeMixIn`: Nuestra clase `mixin` que contiene la configuración de ContactType para deserialización.
+    - `Demo`: Clase main para hacer pruebas.
