@@ -162,3 +162,20 @@ Ver proyecto `dop-playground`, paquete `sec05`:
 - `impl`
     - `LoanProcessorImpl`: Implementación de la interface LoanProcessor.
 - `Demo`: Clase main para hacer las pruebas.
+
+## Modeling Uncertainty With Types
+
+[README](./dop-playground/README.md#modeling-uncertainty-with-types)
+
+Ver proyecto `dop-playground`, paquete `sec06`:
+
+- `lec01`
+    - `Option`: Es un `sealed interface`, genérico.
+        - Internamente los `record` que contiene son `Present<T>` y `Absent<T>`
+        - Tiene también métodos estáticos.
+    - `Demo`: Clase main.
+- `lec02`
+    - `Either`: Es un `sealed interface`, genérico.
+        - Internamente los `record` que contiene son `Left<L, R>` y `Right<L, R>`.
+        - Tiene también métodos estáticos helper.
+    - `Demo`: Clase main para hacer pruebas.

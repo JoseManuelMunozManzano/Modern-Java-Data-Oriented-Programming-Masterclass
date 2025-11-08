@@ -1179,3 +1179,68 @@ Pero en nuestro diseño, que podemos ver en la imagen de arriba, tenemos los dis
   - Tratamos con flujos de trabajo / procesos de la aplicación que contienen muchos estados.
   - Necesitamos datos ricos por estado en el flujo de trabajo.
   - Nos importa la inmutabilidad y las transiciones de estado explícitas.
+
+## Modeling Uncertainty With Types
+
+Esta sección y la siguiente sobre gestión de errores están muy relacionadas.
+
+En la vida real, cuando se hace una petición, podemos obtener una respuesta, pero también podemos no obtenerla.
+
+Por ejemplo, `getCustomerInformationById`, si el id está presente en BD obtendremos la información del cliente, sino, obtendremos null o un mensaje de error.
+
+¿Cómo podemos modelar esta incertidumbre en nuestro código, de una forma clara, segura y explícita?
+
+### Option Type
+
+`Option<T>`
+
+- Representa un valor que puede estar presente o no.
+- Vamos a reescribir `Optional<T>` usando `sealed type`.
+- Hay que verlo como un ejercicio - ¡Podemos crear nuevos tipos usando esto como idea!
+  - Cosa que vamos a hacer
+
+En `src/java/com/jmunoz/sec06` creamos los packages/clases siguientes:
+
+- `lec01`
+  - `Option`: Es un `sealed interface`, genérico.
+    - Internamente los `record` que contiene son `Present<T>` y `Absent<T>`.
+    - Tiene también métodos estáticos helper.
+  - `Demo`: Clase main para hacer pruebas.
+
+### Either Type
+
+`Either<L, R>`
+
+- Representa dos posibles resultados.
+- Un valor que puede ser de dos tipos - ¡pero nunca de ambos!
+  - O Left(L) o Right(R)
+  - La parte izquierda suele usarse como un fallo (tipo error) y la parte derecha como un tipo éxito.
+  - También puede usarse para crear un tipo de `sealed type`.
+
+![alt Either Example](./images/67-EitherExample.png)
+
+Por ejemplo, podemos crear un `sealed interface` y llamar al método `contact`. Podemos tener un par de opciones como `EMail` y `Phone`.
+
+Como vemos en la imagen, usamos una librería de terceros que contiene estos dos `record types`, `Phone` y `EMail`. No son `sealed`.
+
+Pero usando el tipo `Either` genérico, podemos devolver o `Phone` o `EMail`, elecciones, sin usar un `sealed type`.
+
+El tipo `Either` no existe en Java, pero es fácil de crear.
+
+En `src/java/com/jmunoz/sec06` creamos los packages/clases siguientes:
+
+- `lec02`
+  - `Either`: Es un `sealed interface`, genérico.
+    - Internamente los `record` que contiene son `Left<L, R>` y `Right<L, R>`.
+    - Tiene también métodos estáticos helper.
+  - `Demo`: Clase main para hacer pruebas.
+
+### [Clarification] - What About More Than 2 Options?
+
+![alt More Than 2 Options](./images/68-MoreThan2Options.png)
+
+Cuando tenemos 2 opciones, podemos usar el tipo `Either`. ¿Qué pasa si tenemos 3 opciones como en la imagen?
+
+![alt Sealed Wrapper](./images/69-SealedWrapper.png)
+
+En estos casos, podemos crear un wrapper `sealed type` como el que se ve en la imagen de arriba. Tendremos un `record` por cada opción.
