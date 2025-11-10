@@ -1,0 +1,403 @@
+{
+	"info": {
+		"_postman_id": "9079d7c4-f8dc-4d4e-a0df-253c04cb8437",
+		"name": "data-oriented-programming",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "34902178"
+	},
+	"item": [
+		{
+			"name": "phase-1",
+			"item": [
+				{
+					"name": "01-customer-id-null",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": null,\n    \"productId\": \"SIN001\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "02-zero-quantity",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "03-product-not-found",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"SIN100\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "04-customer-not-found",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG100\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "05-product-discontinued",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"DIS001\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "06-payment-declined",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG002\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "07-regular-user-single-product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "08-regular-user-bundle-product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"BUN001\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "09-business-user-single-product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"BUS001\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "10-business-user-bundle-product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"BUS001\",\n    \"productId\": \"BUN001\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "11-business-user-unpaid-invoice",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"BUS002\",\n    \"productId\": \"BUN001\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "phase-2",
+			"item": [
+				{
+					"name": "01-no-coupon-order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "02-invalid-coupon-order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 1,\n    \"couponCode\": \"DUMMY\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "03-flat-10-coupon-order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 1,\n    \"couponCode\": \"DOP_FLAT_10\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "04-flat-1000-coupon-order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 1,\n    \"couponCode\": \"DOP_FLAT_1000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "05-percent-50-coupon-order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 1,\n    \"couponCode\": \"DOP_WELCOME_50\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "06-percent-20-with-cap-coupon-order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 1,\n    \"couponCode\": \"DOP_WELCOME_20\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "phase-3",
+			"item": [
+				{
+					"name": "01-regular-order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"SIN001\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "02-regular-user-shipping-declined",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"REG001\",\n    \"productId\": \"SIN010\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "03-business-user-paid-order-shipping-declined",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"BUS001\",\n    \"productId\": \"SIN010\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				},
+				{
+					"name": "04-business-user-unpaid-order-shipping-declined",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"BUS002\",\n    \"productId\": \"SIN010\",\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8080/orders"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
