@@ -69,9 +69,9 @@ Los tres primeros apartados (Records, Sealed Types y Pattern Matching) son los b
 
 ## Records
 
-[README](./dop-playground/README.md#records)
+[README](./01-dop-playground/README.md#records)
 
-Ver proyecto `dop-playground`, paquete `sec01`:
+Ver proyecto `01-dop-playground`, paquete `sec01`:
 
 - `Lec01RecordBasicsDemo`: Creamos un record dentro de esta clase y exploramos lo básico de los records, como getters, equals, toString...
 - `Lec02CanonicalConstructor`: Ejemplo del constructor autogenerado por defecto, llamado Canonical Constructor y el problema que conlleva si el record tiene muchos campos.
@@ -87,9 +87,9 @@ Ver proyecto `dop-playground`, paquete `sec01`:
 
 ## Sealed Types
 
-[README](./dop-playground/README.md#sealed-types)
+[README](./01-dop-playground/README.md#sealed-types)
 
-Ver proyecto `dop-playground`, paquete `sec02`:
+Ver proyecto `01-dop-playground`, paquete `sec02`:
 
 - `lec01`
     - `Payment`: Clase abstracta.
@@ -106,9 +106,9 @@ Ver proyecto `dop-playground`, paquete `sec02`:
 
 ## Pattern Matching
 
-[README](./dop-playground/README.md#pattern-matching)
+[README](./01-dop-playground/README.md#pattern-matching)
 
-Ver proyecto `dop-playground`, paquete `sec03`:
+Ver proyecto `01-dop-playground`, paquete `sec03`:
 
 - `Lec01InstanceOf`: Ejemplo de uso de `instanceof` usando `pattern variable`.
 - `Lec02SwitchExpression`: Ejemplo de uso de `switch expression`.
@@ -122,9 +122,9 @@ Ver proyecto `dop-playground`, paquete `sec03`:
 
 ## Principles Of Data Oriented Programming
 
-[README](./dop-playground/README.md#principles-of-data-oriented-programming)
+[README](./01-dop-playground/README.md#principles-of-data-oriented-programming)
 
-Ver proyecto `dop-playground`, paquete `sec04`:
+Ver proyecto `01-dop-playground`, paquete `sec04`:
 
 - `lec01`
     - `Payment`: Es un `sealed interface` que contiene internamente dos `records` con los tipos de pago permitidos.
@@ -144,9 +144,9 @@ Ver proyecto `dop-playground`, paquete `sec04`:
 
 ## Domain Modeling
 
-[README](./dop-playground/README.md#domain-modeling)
+[README](./01-dop-playground/README.md#domain-modeling)
 
-Ver proyecto `dop-playground`, paquete `sec05`:
+Ver proyecto `01-dop-playground`, paquete `sec05`:
 
 - `domain`
     - `Applicant`: Record
@@ -165,9 +165,9 @@ Ver proyecto `dop-playground`, paquete `sec05`:
 
 ## Modeling Uncertainty With Types
 
-[README](./dop-playground/README.md#modeling-uncertainty-with-types)
+[README](./01-dop-playground/README.md#modeling-uncertainty-with-types)
 
-Ver proyecto `dop-playground`, paquete `sec06`:
+Ver proyecto `01-dop-playground`, paquete `sec06`:
 
 - `lec01`
     - `Option`: Es un `sealed interface`, genérico.
@@ -182,9 +182,9 @@ Ver proyecto `dop-playground`, paquete `sec06`:
 
 ## Error Handling
 
-[README](./dop-playground/README.md#error-handling)
+[README](./01-dop-playground/README.md#error-handling)
 
-Ver proyecto `dop-playground`, paquete `sec07`:
+Ver proyecto `01-dop-playground`, paquete `sec07`:
 
 - `lec01`
     - `FileReadResponse`: Es un `sealed interface` que usaremos para modelar tres posibles resultados.
@@ -206,9 +206,9 @@ Ver proyecto `dop-playground`, paquete `sec07`:
 
 ## Polymorphic Deserialization
 
-[README](./dop-playground/README.md#polymorphic-deserialization)
+[README](./01-dop-playground/README.md#polymorphic-deserialization)
 
-Ver proyecto `dop-playground`, paquete `sec08`:
+Ver proyecto `01-dop-playground`, paquete `sec08`:
 
 - `lec01`
     - `ContactType`: Es un `sealed interface` que contiene los siguientes `records`: `EMail` y `Phone`.
@@ -220,3 +220,114 @@ Ver proyecto `dop-playground`, paquete `sec08`:
     - `ContactType`: Es un `sealed interface` que contiene los siguientes `records`: `EMail` y `Phone`.
     - `ContactTypeMixIn`: Nuestra clase `mixin` que contiene la configuración de ContactType para deserialización.
     - `Demo`: Clase main para hacer pruebas.
+
+## Application Development - Order Workflow Processing - Phase 1
+
+En esta sección vamos a desarrollar una aplicación usando Spring Boot.
+
+La documentación general del proyecto está en `02-order-processing-workflow` y el desarrollo del proyecto se encuentra en `03-order-processing`.
+
+Las distintas fases emulan distintos requerimientos a lo largo del tiempo.
+
+[README](./02-order-processing-workflow/01-order-processing-system-phase-1.md)
+
+Los paquetes y clases creados para este proyecto han sido:
+
+- `model`
+    - Todas estas clases son los modelos necesarios para hacer las peticiones y obtener las respuestas de los servicios externos.
+        - `product`
+            - `Product`: Es un `sealed interface` que modela los `records` siguientes: `Single` y `Bundle`.
+                - Es la respuesta del servicio `product`.
+            - `ProductStatus`: Es un `sealed interface` que modela los `records` siguientes: `Active` y `Discontinued`.
+                - Es la respuesta del servicio `product`.
+        - `common`
+            - `Address`: Es un `record`.
+                - También podría haber estado en el sub-paquete `customer`, pero como es posible que se use en otras clases, lo dejamos en `common`.
+            - `PriceSummary`: Es un `record`.
+                - También podría haber estado en el sub-paquete `invoice`, pero como es posible que se use en otras clases, lo dejamos en `common`.
+        - `customer`
+            - `Customer`: Es un `sealed interface` que modela los `records` siguientes: `Regular` y `Business`.
+                - Es la respuesta del servicio `customer`.
+        - `payment`
+            - `PaymentRequest`: Es un `record` que modela la petición que haremos al servicio `payment`.
+            - `PaymentStatus`: Es un `sealed interface` que modela los `records` siguientes: `Processed` y `Declined`.
+                - Es la respuesta del servicio `payment`.
+        - `invoice`
+            - `InvoiceRequest`: Es un `sealed interface` que modela los `records` siguientes: `Paid` y `Unpaid`.
+                - Enviamos este request para generar la factura.
+            - `Invoice`: Es un `sealed interface` que modela los `records` siguientes: `Paid` y `Unpaid`.
+                - Es la respuesta del servicio externo.
+        - `shipping`
+            - `Recipient`: Es un `record`.
+            - `ShipmentItem`: Es un `record`.
+            - `ShippingRequest`: Es un `record` que modela la petición que haremos al servicio `shipping`.
+            - `TrackingDetails`: Es un `record`.
+            - `Shipment`: Es un `record`.
+            - `ShippingResponse`: Es un `record` que modela la respuesta que obtendremos del servicio `shipping`.
+    - Todas estas clases son los modelos necesarios para hacer las peticiones y obtener las respuestas de nuestro servicio. Estos modelos tienen validaciones y hacemos diferentes modelos (DTO y modelos que pasan al orchestrator)
+    - En los DTO lo que nos importa es la serialización, deserialización y validaciones de las peticiones, y no queremos mezclar estas responsabilidades con los modelos que llegan al orchestrator.
+        - `order`
+            - `OrderRequest`: Es un `record` con la petición que nos hacen desde el cliente a nuestro servicio.
+                - Con validaciones. Es un DTO
+            - `CreateOrderCommand`: Es un `record` con la data de la orden que llega al orchestrator desde el DTO.
+            - `OrderItem`: Es un `record` para el orchestrator.
+            - `Order`: Es un `record` para el orchestrator.
+            - `OrderResponse`: Es un `record` con la respuesta que devolvemos al cliente. Contiene los `record` internos `Product` y `InvoiceDetails`.
+- `exception`
+    - `ApplicationError`: Es un `sealed interface` que permite las `sealed interafaces` siguientes: `DomainError` y `SystemError`.
+    - `DomainError`: Es un `sealed interface` con los `records` siguientes: `EntityNotFound`, `ProductDiscontinued` y `PaymentDeclined`.
+    - `SystemError`: Es un `sealed interface` con el `record` siguiente: `RemoteServiceError`.
+    - `ApplicationException`: Es el `RuntimeException`.
+    - `ApplicationExceptions`: Es una utility class con muchos métodos `factory` estáticos cuya misión es lanzar las excepciones.
+- `client`
+    - `ProductClient`: Es una interface que modela el comportamiento.
+    - `CustomerClient`: Es una interface que modela el comportamiento.
+    - `PaymentClient`: Es una interface que modela el comportamiento.
+    - `BillingClient`: Es una interface que modela el comportamiento.
+    - `ShippingClient`: Es una interface que modela el comportamiento.
+    -  `impl`
+        - `AbstractServiceClient`: Es una clase abstracta que gestiona el manejo de excepciones (en vez de hacerlo en `ProductServiceClient` y los demás).
+        - `ProductServiceClient`: Implementación de `ProductClient`.
+        - `CustomerServiceClient`: Implementación de `CustomerClient`.
+        - `PaymentServiceClient`: Implementación de `PaymentClient`.
+        - `BillingServiceClient`: Implementación de `BillingClient`.
+        - `ShippingServiceClient`: Implementación de `ShippingClient`.
+- `service`
+    - `RequestValidatorService`: Es una interface que modela el comportamiento. Validará si obtiene la data correcta de los clientes `Product` y `Client` y creará objeto Order.
+    - `PriceCalculator`: Es una interface que modela el comportamiento. Dado el objeto `Order` calculará el precio.
+    - `PaymentBillingService`: Es una interface que modela el comportamiento. Realiza el pago y crea la factura.
+    - `ShippingService`: Es una interface que modela el comportamiento. Realiza el envío.
+    - `OrderService`: Es una interface que modela el comportamiento. Recibe OrderRequest y devolverá OrderResponse.
+    - `impl`
+        - `RequestValidatorServiceImpl`: Implementación de `RequestValidatorService`.
+        - `PriceCalculatorImpl`: Implementación de `PriceCalculator`.
+        - `PaymentBillingServiceImpl`: Implementación de `PaymentBillingService`.
+        - `ShippingServiceImpl`: Implementación de `ShippingService`.
+        - `OrderServiceImpl`: Implementación de la interface `OrderService`.
+- `orchestrator`
+    - `OrderState`: Es un `sealed interface` que define los `records` siguientes: `Placed`, `Validated`, `Priced`, `Invoiced`, `Shipped` y `Fulfilled`.
+    - `OrderOrchestrator`: Es una interface que modela el comportamiento para realizar la transición entre los distintos estados.
+    - `impl`
+        - `OrderOrchestratorImpl`: Implementación de la interface `OrderOrchestrator`.
+- `util`
+    - `DomainDtoMapper`: Hace mapeos de OrderRequest a CreateOrderCommand y también mapeamos a OrderResponse a partir de Order, Invoice y List<Shipment>
+- `controller`
+    - `OrderController`: El controlador de nuestra aplicación.
+    - `advice`
+        - `ApplicationExceptionHandler`: Es el Controller Advice.
+- `config`
+    - `LoggingInterceptor`: Para poder hacer debug fácilmente vamos a hacer log en cada request que se envíe.
+    - `ApplicationConfiguration`: Clase de configuración de beans de Spring.
+        - Se añade a RestClient `LoggingInterceptor`.
+    - `CustomerMixIn`: Clase de configuración para poder hacer deserialización polimórfica.
+    - `ProductMixIn`: Clase de configuración para poder hacer deserialización polimórfica.
+    - `ProductStatusMixIn`: Clase de configuración para poder hacer deserialización polimórfica.
+    - `InvoiceMixIn`: Clase de configuración para poder hacer deserialización polimórfica.
+- `application.properties`
+```sql
+product.service.url=http://localhost:7070/products
+customer.service.url=http://localhost:7070/customers
+payment.service.url=http://localhost:7070/payment
+billing.service.url=http://localhost:7070/billing
+shipping.service.url=http://localhost:7070/shipping
+```
