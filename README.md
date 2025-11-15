@@ -413,3 +413,58 @@ Los paquetes y clases creados/modificados para este proyecto han sido:
 - `controller`
     - `advice`
         - `ApplicationExceptionHandler`: Añadimos un nuevo método `toProblemDetail(...)` para `ShippingDeclined` y lo añadimos al switch del método `handleException(...)`.
+
+## Persistence
+
+[README](./04-sealed-persistence/README.md)
+
+**1 Table For All Subclasses**
+
+Ver proyecto `04-sealed-persistence`, paquete `sec01`:
+
+- `application`: Es el paquete donde tendremos nuestros modelos, clases de servicio, haremos las transiciones entre estados
+    - `model`
+        - `Payment`: Es una `sealed interface` que contiene los `records` siguientes: `CreditCard` y `Paypal`.
+    - `util`
+        - `DomainEntityMapper`: Hacemos el mapeo desde el modelo de dominio a la entidad y al revés.
+    - `service`
+        - `PaymentService`: La clase de servicio.
+- `persistence`: Es el paquete donde tendremos entidades y repositorios.
+    - `entity`
+        - `PaymentEntity`: La representación en Java de la tabla `payment` de BD.
+        - `PaymentType`: Es un `enum` con las mismas posibilidades que ofrece el model `Payment`, es decir `CREDIT_CARD` y `PAYPAL`.
+    - `repository`
+        - `PaymentRepository`: El repositorio.
+
+En `test/java/com/jmunoz/sealedpersistence` creamos el test siguiente:
+
+- `OneTableApproachTest`: No es realmente un test, es más lanzar una ejecución de la aplicación.
+
+En `application.properties` añadimos, para ver las sentencias SQL:
+
+```
+spring.jpa.show-sql=true
+```
+
+**1 Table Per Subclass**
+
+Ver proyecto `04-sealed-persistence`, paquete `sec02`:
+
+- `application`: Es el paquete donde tendremos nuestros modelos, clases de servicio, haremos las transiciones entre estados
+    - `model`
+        - `AccountType`: Es una `sealed interface` que contiene los `records` siguientes: `Checking` y `Savings`.
+    - `util`
+        - `DomainEntityMapper`: Hacemos el mapeo desde el modelo de dominio a la entidad y al revés.
+    - `service`
+        - `AccountService`: La clase de servicio.
+- `persistence`: Es el paquete donde tendremos entidades y repositorios.
+    - `entity`
+        - `Account`: Clase abstracta con los campos en común de `CheckingAccount` y `SavingsAccount`.
+        - `CheckingAccount`: La representación en Java de la tabla `checking_account` de BD.
+        - `SavingsAccount`: La representación en Java de la tabla `savings_account` de BD.
+    - `repository`
+        - `AccountRepository`: El repositorio.
+
+En `test/java/com/jmunoz/sealedpersistence` creamos el test siguiente:
+
+- `TablePerClassApproachTest`: No es realmente un test, es más lanzar una ejecución de la aplicación.
