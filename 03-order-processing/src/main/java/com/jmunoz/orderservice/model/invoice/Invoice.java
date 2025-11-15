@@ -7,6 +7,10 @@ import java.util.UUID;
 
 public sealed interface Invoice {
 
+    // Esto es opcional.
+    // Estos campos son obligatorios para cualquier implementación de Invoice.
+    String id();
+
     // id es el id de factura obtenido en la respuesta.
     record Paid(String id,
                 UUID orderId,

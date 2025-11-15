@@ -527,3 +527,113 @@ Los tests que hacemos son, usando Postman:
       - Incrementar `quantity` para ver los distintos descuentos y su `finalAmount`.
     - `06-percent-20-with-cap-coupon-order`: Es un `20%` de descuento, pero con un máximo de descuento de `$50`.
       - Incrementar `quantity` para ver los distintos descuentos, hasta el máximo de `$50`, y su `finalAmount`.
+
+## Phase 3
+
+En esta fase, vamos a corregir un error que ocurre al hacer el test de `Postman` siguiente:
+
+- `07-regular-user-single-product`: Camino feliz para un pedido regular de un solo producto.
+    - Indicar el siguiente body para que falle (productId es lo que hace que falle)
+    - ```json
+        {
+            "customerId": "REG001",
+            "productId": "SIN010",
+            "quantity": 1
+        }
+      ```
+    - En Postman da un error 503 Service Unavailable.
+    - Si vamos a la terminal donde estamos ejecutando los servicios externos, vemos: `2025-11-15T07:06:38.803+01:00 ERROR 49517 --- [nio-7070-exec-2] c.v.e.c.ExternalServicesController       : declining shipping request for order-id: 9133e45e-5f0d-40a9-8452-7a94b1e3494e`
+
+El problema informático es que el error que nos ocurre (declining shipping) no está siendo manejado por nuestro servicio `order-service`.
+
+Pero el problema realmente grave es que estamos cobrando al cliente y no hemos completado la orden (no se va a enviar). Tenemos que devolver el dinero al cliente.
+
+**NOTA**
+
+Para simular `declining shipping` usar siempre `productId` con valor `SIN010`.
+
+Documentación: [README](../02-order-processing-workflow/03-order-processing-system-phase-3.md)
+
+### Modeling Shipping Status
+
+Modificamos las siguientes clases en el paquete indicado:
+
+- `model`
+  - `shipping`
+    - `ShippingStatus`: Es un nuevo `sealed interface` que modela los `records` siguientes: `Scheduled` y `Declined`.
+      - Con esto, no sobraría el modelo `ShippingResponse`, pero lo dejamos para mantener la historia de la fase 1.
+  - `payment`
+    - `RefundRequest`: Es un nuevo `record` que modela la petición de una devolucion.
+
+### Declined Shipping - Domain Error
+
+Modificamos las siguientes clases en el paquete indicado:
+
+- `exception`
+  - `DomainError`: Modificamos esta clase para modelar `ShippingDecline` como un error de dominio.
+  - `ApplicationExceptions`: Modificamos para añadir un nuevo método helper `declinedShipping(...)`.
+
+### Handling Refund, Invoice, Declined Shipping - Part 1
+
+Tenemos que actualizar los clientes `ShippingClient`, `PaymentClient` y `BillingClient`.
+
+Modificamos las siguientes clases en el paquete indicado:
+
+- `client`
+  - `PaymentClient`: Añadimos el método `refund(...)` para devolver el dinero.
+  - `BillingClient`: Añadimos el método `cancelInvoice(...)` para cancelar la factura.
+  - `ShippingClient`: Modificamos el método `schedule(...)` para devolver `ShippingStatus` en vez de `ShippingResponse`.
+  - `impl`
+    - `PaymentServiceClient`: Añadimos la implementación del método `refund(...)`.
+    - `BillingServiceClient`: Añadimos la implementación del método `cancelInvoice(...)`.
+    - `ShippingServiceClient`: Modificamos la implementación del método `schedule(...)`.
+
+### Handling Refund, Invoice, Declined Shipping - Part 2
+
+Tenemos que actualizar los servicios `PaymentBillingService` y `ShippingService`.
+
+Modificamos las siguientes clases en el paquete indicado:
+
+- `service`
+  - `PaymentBillingService`: Añadimos el método `refundPayment(...)` para devolver el dinero.
+  - `ShippingService`: Modificamos el método `scheduleShipping(...)` para devolver `ShippingStatus` en vez de `ShippingResponse`.
+  - `impl`
+    - `PaymentBillingService`: Añadimos la implementación del método `refundPayment(...)`.
+    - `ShippingServiceImpl`: Modificamos la implementación del método `scheduleShipping(...)`.
+
+### Updating Orchestrator For Declined Shipping
+
+Modificamos las siguientes clases en el paquete indicado:
+
+- `orchestrator`
+  - `impl`
+    - `OrderOrchestratorImpl`: Corregimos el error del método `public OrderState handle(OrderState.Invoiced invoiced)`.
+
+### Application Exception Handling
+
+Nos centramos en esta clase en el controller advice.
+
+Modificamos las siguientes clases en el paquete indicado:
+
+- `controller`
+  - `advice`
+    - `ApplicationExceptionHandler`: Añadimos un nuevo método `toProblemDetail(...)` para `ShippingDeclined` y lo añadimos al switch del método `handleException(...)`.
+
+### Phase 3 - Final Demo
+
+Ver: [Final Demo](../02-order-processing-workflow/03-order-processing-system-phase-3.md#final-demo)
+
+Ejecutamos `OrderServiceApplication`.
+
+En la carpeta `postman` se encuentra un fichero de Postman para importar y hacer pruebas.
+
+Los tests que hacemos son, usando Postman:
+
+- `phase-3`
+  - `01-regular-order`: Es el camino feliz, para ver que todo funciona.
+  - `02-regular-user-shipping-declined`: Obtenemos el error 422 Unprocessable Entity de forma correcta.
+    - Si vemos los logs de los servicios externos, veremos que se ha devuelto el dinero al cliente y se ha cancelado la factura.
+  - `03-business-user-paid-order-shipping-declined`: Obtenemos el error 422 Unprocessable Entity de forma correcta.
+    - Si vemos los logs de los servicios externos, veremos que se ha devuelto el dinero al cliente y se ha cancelado la factura.
+  - `04-business-user-unpaid-order-shipping-declined`: Obtenemos el error 422 Unprocessable Entity de forma correcta.
+    - Si vemos los logs de los servicios externos, veremos que solo se ha cancelado la factura, ya que no se llegó a pagar.

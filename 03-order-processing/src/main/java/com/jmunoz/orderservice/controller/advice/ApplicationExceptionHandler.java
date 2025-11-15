@@ -22,6 +22,7 @@ public class ApplicationExceptionHandler {
         return switch (ex.getApplicationError()) {
             case EntityNotFound error -> this.toProblemDetail(error);
             case PaymentDeclined error -> this.toProblemDetail(error);
+            case ShippingDeclined error -> this.toProblemDetail(error);
             case ProductDiscontinued error -> this.toProblemDetail(error);
             case RemoteServiceError error -> this.toProblemDetail(error);
         };
@@ -42,6 +43,13 @@ public class ApplicationExceptionHandler {
         return this.build(HttpStatus.PAYMENT_REQUIRED, error, problemDetail -> {
             problemDetail.setTitle("Payment Required");
             problemDetail.setDetail("Payment for the order was declined. Please update your payment information and try again");
+        });
+    }
+
+    private ProblemDetail toProblemDetail(ShippingDeclined error) {
+        return this.build(HttpStatus.UNPROCESSABLE_ENTITY, error, problemDetail -> {
+            problemDetail.setTitle("Unable To Ship");
+            problemDetail.setDetail("We are unable to ship this order. Please contact support for more details");
         });
     }
 

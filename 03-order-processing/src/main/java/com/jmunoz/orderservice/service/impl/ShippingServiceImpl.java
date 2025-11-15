@@ -3,10 +3,7 @@ package com.jmunoz.orderservice.service.impl;
 import com.jmunoz.orderservice.client.ShippingClient;
 import com.jmunoz.orderservice.model.order.Order;
 import com.jmunoz.orderservice.model.product.Product.*;
-import com.jmunoz.orderservice.model.shipping.Recipient;
-import com.jmunoz.orderservice.model.shipping.ShipmentItem;
-import com.jmunoz.orderservice.model.shipping.ShippingRequest;
-import com.jmunoz.orderservice.model.shipping.ShippingResponse;
+import com.jmunoz.orderservice.model.shipping.*;
 import com.jmunoz.orderservice.service.ShippingService;
 
 import java.util.List;
@@ -20,8 +17,16 @@ public class ShippingServiceImpl implements ShippingService {
         this.shippingClient = shippingClient;
     }
 
+    // NOTA: Queda como histórico de la fase 1
+//    @Override
+//    public ShippingResponse scheduleShipping(Order order) {
+//        var request = this.toShippingRequest(order);
+//        return this.shippingClient.schedule(request);
+//    }
+
+    // Ahora para la fase 3 se devuelve ShippingStatus.
     @Override
-    public ShippingResponse scheduleShipping(Order order) {
+    public ShippingStatus scheduleShipping(Order order) {
         var request = this.toShippingRequest(order);
         return this.shippingClient.schedule(request);
     }

@@ -3,8 +3,10 @@ package com.jmunoz.orderservice.client.impl;
 import com.jmunoz.orderservice.client.PaymentClient;
 import com.jmunoz.orderservice.model.payment.PaymentRequest;
 import com.jmunoz.orderservice.model.payment.PaymentStatus;
+import com.jmunoz.orderservice.model.payment.RefundRequest;
 import org.springframework.web.client.RestClient;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -44,6 +46,19 @@ public class PaymentServiceClient extends AbstractServiceClient implements Payme
                         .retrieve()
                         .body(PaymentStatus.Processed.class),
                 errorMap
+        );
+    }
+
+    @Override
+    public void refund(RefundRequest request) {
+        // La url base es http://localhost:7070/payment y el resto es el uri.
+        this.executeRequest(
+                () -> this.restClient.post()
+                        .uri("/refund")
+                        .body(request)
+                        .retrieve()
+                        .toBodilessEntity(),  // No esperamos ninguna respuesta.
+                Collections.emptyMap() // No tenemos errorMap.
         );
     }
 }

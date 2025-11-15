@@ -229,7 +229,9 @@ La documentación general del proyecto está en `02-order-processing-workflow` y
 
 Las distintas fases emulan distintos requerimientos a lo largo del tiempo.
 
-[README](./02-order-processing-workflow/01-order-processing-system-phase-1.md)
+Requerimientos: [README](./02-order-processing-workflow/01-order-processing-system-phase-1.md)
+
+[README](./03-order-processing/README.md#phase-1)
 
 Los paquetes y clases creados para este proyecto han sido:
 
@@ -338,9 +340,11 @@ Vamos a introducir algunos requerimientos en nuestro servicio.
 
 En concreto, para esta fase 2, vamos a añadir el soporte para códigos de cupones.
 
-[README](./02-order-processing-workflow/02-order-processing-system-phase-2.md)
+Requerimientos: [README](./02-order-processing-workflow/02-order-processing-system-phase-2.md)
 
-Los paquetes y clases creados para este proyecto han sido:
+[README](./03-order-processing/README.md#phase-2)
+
+Los paquetes y clases creados/modificados para este proyecto han sido:
 
 - `model`
     - `coupon`
@@ -367,3 +371,45 @@ Los paquetes y clases creados para este proyecto han sido:
 ```sql
 coupon.service.url=http://localhost:7070/coupons
 ```
+
+## Application Development - Order Workflow Processing - Phase 3
+
+En esta fase, vamos a corregir un error que ocurre al hacer el test de `Postman` siguiente:
+
+- `07-regular-user-single-product`: Camino feliz para un pedido regular de un solo producto.
+
+Requerimientos: [README](./02-order-processing-workflow/03-order-processing-system-phase-3.md)
+
+[README](./03-order-processing/README.md#phase-3)
+
+Los paquetes y clases creados/modificados para este proyecto han sido:
+
+- `model`
+    - `shipping`
+        - `ShippingStatus`: Es un nuevo `sealed interface` que modela los `records` siguientes: `Scheduled` y `Declined`.
+            - Con esto, no sobraría el modelo `ShippingResponse`, pero por ahora lo dejamos.
+    - `payment`
+        - `RefundRequest`: Es un nuevo `record` que modela la petición de una devolucion.
+- `exception`
+    - `DomainError`: Modificamos esta clase para modelar `ShippingDecline` como un error de dominio.
+    - `ApplicationExceptions`: Modificamos para añadir un nuevo método helper `declinedShipping(...)`.
+- `client`
+    - `PaymentClient`: Añadimos el método `refund(...)` para devolver el dinero.
+    - `BillingClient`: Añadimos el método `cancelInvoice(...)` para cancelar la factura.
+    - `ShippingClient`: Modificamos el método `schedule(...)` para devolver `ShippingStatus` en vez de `ShippingResponse`.
+    - `impl`
+        - `PaymentServiceClient`: Añadimos la implementación del método `refund(...)`.
+        - `BillingServiceClient`: Añadimos la implementación del método `cancelInvoice(...)`.
+        - `ShippingServiceClient`: Modificamos la implementación del método `schedule(...)`.
+- `service`
+    - `PaymentBillingService`: Añadimos el método `refundPayment(...)` para devolver el dinero.
+    - `ShippingService`: Modificamos el método `scheduleShipping(...)` para devolver `ShippingStatus` en vez de `ShippingResponse`.
+    - `impl`
+        - `PaymentBillingService`: Añadimos la implementación del método `refundPayment(...)`.
+        - `ShippingServiceImpl`: Modificamos la implementación del método `scheduleShipping(...)`.
+- `orchestrator`
+    - `impl`
+        - `OrderOrchestratorImpl`: Corregimos el error del método `public OrderState handle(OrderState.Invoiced invoiced)`.
+- `controller`
+    - `advice`
+        - `ApplicationExceptionHandler`: Añadimos un nuevo método `toProblemDetail(...)` para `ShippingDeclined` y lo añadimos al switch del método `handleException(...)`.

@@ -47,4 +47,16 @@ public class BillingServiceClient extends AbstractServiceClient implements Billi
                 Collections.emptyMap()
         );
     }
+
+    @Override
+    public void cancelInvoice(String invoiceId) {
+        // La url base es http://localhost:7070/billing y el resto es el uri.
+        this.executeRequest(
+                () -> this.restClient.post()
+                        .uri("/invoices/{invoiceId}/cancel", invoiceId)
+                        .retrieve()  // No hay body, así que directamente recuperamos.
+                        .toBodilessEntity(), // No esperamos ninguna respuesta.
+                Collections.emptyMap()  // No tenemos errorMap.
+        );
+    }
 }

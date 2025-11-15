@@ -25,4 +25,7 @@ public sealed interface DomainError extends ApplicationError {
     record PaymentDeclined(UUID orderId,
                            double amount) implements DomainError {
     }
+
+    record ShippingDeclined(UUID orderId) implements DomainError {
+    }
 }

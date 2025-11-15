@@ -1,5 +1,8 @@
 package com.jmunoz.orderservice.orchestrator.impl;
 
+import com.jmunoz.orderservice.exception.ApplicationExceptions;
+import com.jmunoz.orderservice.model.invoice.Invoice;
+import com.jmunoz.orderservice.model.shipping.ShippingStatus;
 import com.jmunoz.orderservice.orchestrator.OrderOrchestrator;
 import com.jmunoz.orderservice.orchestrator.OrderState;
 import com.jmunoz.orderservice.service.PaymentBillingService;
@@ -44,8 +47,23 @@ public class OrderOrchestratorImpl implements OrderOrchestrator {
 
     @Override
     public OrderState handle(OrderState.Invoiced invoiced) {
-        var shippingResponse = this.shippingService.scheduleShipping(invoiced.order());
-        return new OrderState.Shipped(invoiced.order(), invoiced.invoice(), shippingResponse.shipments());
+        // Queda como histórico de la fase 1 cuando trabajábamos con ShippingResponse.
+//        var shippingResponse = this.shippingService.scheduleShipping(invoiced.order());
+//        return new OrderState.Shipped(invoiced.order(), invoiced.invoice(), shippingResponse.shipments());
+
+        // En la fase 3 trabajamos con ShippingStatus.
+        // En el switch el primer case es el camino feliz, to-do funciona bien.
+        // En el segundo case tenemos que devolver el dinero y cancelar la orden.
+        var shippingStatus = this.shippingService.scheduleShipping(invoiced.order());
+        return switch (shippingStatus) {
+            case ShippingStatus.Scheduled scheduled -> new OrderState.Shipped(invoiced.order(), invoiced.invoice(), scheduled.shipments());
+            case ShippingStatus.Declined declined -> this.handleDeclinedShipping(invoiced.invoice(), declined);
+        };
+    }
+
+    private OrderState handleDeclinedShipping(Invoice invoice, ShippingStatus.Declined declined) {
+        this.paymentBillingService.refundPayment(invoice);
+        return ApplicationExceptions.declinedShipping(declined);
     }
 
     @Override

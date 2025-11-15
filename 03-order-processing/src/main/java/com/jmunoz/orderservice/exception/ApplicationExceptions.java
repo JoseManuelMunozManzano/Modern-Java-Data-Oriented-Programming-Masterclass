@@ -2,6 +2,7 @@ package com.jmunoz.orderservice.exception;
 
 import com.jmunoz.orderservice.model.payment.PaymentStatus;
 import com.jmunoz.orderservice.model.product.ProductStatus;
+import com.jmunoz.orderservice.model.shipping.ShippingStatus;
 
 // Esta clase utility tiene como misión lanzar las distintas excepciones usando métodos static factory.
 // La idea es mejorar la legibilidad de nuestra aplicación.
@@ -31,6 +32,11 @@ public class ApplicationExceptions {
                 declined.orderId(),
                 declined.amount()
         );
+        throw new ApplicationException(error);
+    }
+
+    public static <T> T declinedShipping(ShippingStatus.Declined declined){
+        var error = new DomainError.ShippingDeclined(declined.orderId());
         throw new ApplicationException(error);
     }
 

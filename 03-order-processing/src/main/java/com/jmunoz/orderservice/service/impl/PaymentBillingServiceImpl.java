@@ -6,10 +6,12 @@ import com.jmunoz.orderservice.exception.ApplicationExceptions;
 import com.jmunoz.orderservice.model.common.PriceSummary;
 import com.jmunoz.orderservice.model.customer.Customer.*;
 import com.jmunoz.orderservice.model.invoice.Invoice;
+import com.jmunoz.orderservice.model.invoice.Invoice.*;
 import com.jmunoz.orderservice.model.invoice.InvoiceRequest;
 import com.jmunoz.orderservice.model.order.Order;
 import com.jmunoz.orderservice.model.payment.PaymentRequest;
 import com.jmunoz.orderservice.model.payment.PaymentStatus.*;
+import com.jmunoz.orderservice.model.payment.RefundRequest;
 import com.jmunoz.orderservice.service.PaymentBillingService;
 
 public class PaymentBillingServiceImpl implements PaymentBillingService {
@@ -31,6 +33,27 @@ public class PaymentBillingServiceImpl implements PaymentBillingService {
             case Processed processed -> this.toPaidInvoice(order, priceSummary, processed);
             case Declined declined -> this.toUnpaidInvoice(order, priceSummary, declined);
         };
+    }
+
+    @Override
+    public void refundPayment(Invoice invoice) {
+        // Con esto cancelamos la orden.
+        this.billingClient.cancelInvoice(invoice.id());
+        // Solo tenemos que devolver el dinero al cliente si se le ha cobrado.
+        switch (invoice) {
+            case Paid paid -> this.refund(paid);
+            case Unpaid _ -> {}
+        };
+    }
+
+    private void refund(Paid paid) {
+        var request = new RefundRequest(
+                paid.customerId(),
+                paid.orderId(),
+                paid.priceSummary().finalAmount(),
+                paid.transactionId()
+        );
+        this.paymentClient.refund(request);
     }
 
     private Invoice toPaidInvoice(Order order, PriceSummary priceSummary, Processed processed) {
