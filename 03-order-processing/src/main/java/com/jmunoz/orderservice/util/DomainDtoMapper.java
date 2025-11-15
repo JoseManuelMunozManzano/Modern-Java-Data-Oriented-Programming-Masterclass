@@ -22,7 +22,8 @@ public class DomainDtoMapper {
         return CreateOrderCommand.create(
                 request.customerId(),
                 request.productId(),
-                request.quantity()
+                request.quantity(),
+                request.couponCode()
         );
     }
 

@@ -39,6 +39,11 @@ public class ApplicationConfiguration {
     }
 
     @Bean
+    public CouponClient couponClient(@Value("${coupon.service.url}") String baseUrl) {
+        return new CouponServiceClient(buildRestClient(baseUrl));
+    }
+
+    @Bean
     public PaymentClient paymentClient(@Value("${payment.service.url}") String baseUrl) {
         return new PaymentServiceClient(buildRestClient(baseUrl));
     }
@@ -55,8 +60,8 @@ public class ApplicationConfiguration {
 
     // Creando los beans de los servicios.
     @Bean
-    public RequestValidatorService requestValidatorService(ProductClient productClient, CustomerClient customerClient) {
-        return new RequestValidatorServiceImpl(productClient, customerClient);
+    public RequestValidatorService requestValidatorService(ProductClient productClient, CustomerClient customerClient, CouponClient couponClient) {
+        return new RequestValidatorServiceImpl(productClient, customerClient, couponClient);
     }
 
     @Bean

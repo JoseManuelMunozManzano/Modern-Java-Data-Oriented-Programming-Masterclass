@@ -331,3 +331,39 @@ payment.service.url=http://localhost:7070/payment
 billing.service.url=http://localhost:7070/billing
 shipping.service.url=http://localhost:7070/shipping
 ```
+
+## Application Development - Order Workflow Processing - Phase 2
+
+Vamos a introducir algunos requerimientos en nuestro servicio.
+
+En concreto, para esta fase 2, vamos a añadir el soporte para códigos de cupones.
+
+[README](./02-order-processing-workflow/02-order-processing-system-phase-2.md)
+
+Los paquetes y clases creados para este proyecto han sido:
+
+- `model`
+    - `coupon`
+        - `Coupon`: Es un `sealed interface` que modela los `records` siguientes: `Flat`, `Percentage` y `None`.
+            - Es la respuesta del servicio `coupon`.
+    - `order`:
+        - `Order`: Modificamos este `record` para añadir el cupón.
+        - `CreateOrderCommand`: Lo modificamos para añadir el código del cupón, que, recordemos, puede estar o no (usamos Optional).
+        - `OrderRequest`: Modificamos este `dto` para añadir el código del cupón.
+- `util`
+    - `DomainDtoMapper`: Lo modificamos para corregir el error que da ahora por faltar el código del cupón.
+- `client`
+    - `CouponClient`: Es una interface que modela el comportamiento.
+    -  `impl`
+        - `CouponServiceClient`: Implementación de `CouponClient`.
+- `service`
+    - `impl`
+        - `RequestValidatorServiceImpl`: Corregimos el método `validate()` inyectando `CouponClient` y añadiendo el cupón al objeto `Order`.
+        - `PriceCalculatorImpl`: Lo modificamos para aplicar los descuentos del cupón.
+- `config`
+    - `ApplicationConfiguration`: Creamos el bean `CouponClient` y corregimos donde sea necesario añadir el cupón.
+    - `CouponMixIn`: Nueva clase de configuración para poder hacer deserialización polimórfica.
+- `application.properties`
+```sql
+coupon.service.url=http://localhost:7070/coupons
+```
